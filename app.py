@@ -144,7 +144,6 @@ def signup_signin():
 # register route
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    db = get_db()
     """Register user"""
     
     # Forget any user_id
@@ -157,33 +156,46 @@ def register():
     password = request.form.get("password")
     confirmation = request.form.get("confirmation")  # confirming password
 
-    # converting password to string before hashing
+    # Converting password to string before hashing
     password_str = str(password)      
-    if password_str is not None:
+    if password_str:
         hash = generate_password_hash(password_str)
 
     """ User reached route via POST (as by submitting a form via POST) """
     if request.method == "POST":
         if not tel:
-            return render_template("signup_signin.html",reply="Phone number is required",state='0')
+            return render_template("signup_signin.html", reply="Phone number is required", state='0')
         elif not password:
-           return render_template("signup_signin.html",reply="Password is required",state='0') 
+           return render_template("signup_signin.html", reply="Password is required", state='0') 
         elif password != confirmation:
-            return render_template("signup_signin.html",reply="Password do not match", state='0')
+            return render_template("signup_signin.html", reply="Passwords do not match", state='0')
         else:
-            cursor = db.cursor(dictionary=True)  # Create a cursor
-            rows = cursor.execute("SELECT * FROM members WHERE telNumber = %s", (tel,))
-            if (len(rows) == 1):
-                return render_template("signup_signin.html",reply="This number have been used",state='2')
-            else:
-                
-                dateTime = cursor.execute("SELECT datetime('now','localtime') as date")
-                cursor.execute("INSERT INTO onlineusers (id,telNumber,last_activity) VALUES(?,?,?)", None,tel, dateTime[0]["date"])
-                cursor.execute("INSERT INTO members (id,firstName,surName,telNumber,password) VALUES(?,?,?,?,?)", None,firstName,surName,tel,hash)
-                cursor.close()
-                db.close()
-                
-                return render_template("signup_signin.html", reply="Account created successfully", state='1')
+            db = get_db()
+            if db is None:
+                return render_template("signup_signin.html", reply="Failed to connect to the database", state='0')
+            
+            try:
+                cursor = db.cursor(dictionary=True)  # Create a cursor
+                cursor.execute("SELECT * FROM members WHERE telNumber = %s", (tel,))
+                rows = cursor.fetchall()
+
+                if len(rows) == 1:
+                    return render_template("signup_signin.html", reply="This number has been used", state='2')
+                else:
+                    cursor.execute("SELECT NOW() as date")
+                    dateTime = cursor.fetchone()
+
+                    cursor.execute("INSERT INTO onlineusers (telNumber, last_activity) VALUES (%s, %s)", (tel, dateTime['date']))
+                    cursor.execute("INSERT INTO members (firstName, surName, telNumber, password) VALUES (%s, %s, %s, %s)", (firstName, surName, tel, hash))
+                    
+                    db.commit()
+                    cursor.close()
+                    db.close()
+                    
+                    return render_template("signup_signin.html", reply="Account created successfully", state='1')
+            except mysql.connector.Error as e:
+                app.logger.error(f"Error while querying the database: {e}")
+                return render_template("signup_signin.html", reply="An error occurred while registering", state='0')
     else:
         return render_template("signup_signin.html")
 
