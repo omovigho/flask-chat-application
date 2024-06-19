@@ -1,14 +1,15 @@
 import os
-import sqlite3
+#import sqlite3
 import time
 from datetime import date
 
-from cs50 import SQL
+#from cs50 import SQL
 from flask import Flask, redirect, render_template, session, request
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from helper import login_required
+
 
 # Configure application
 app = Flask(__name__)
@@ -17,15 +18,42 @@ app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # Connect to database 
-db = SQL("sqlite:///chat.db")
+#db = SQL("sqlite:///chat.db")
 #db = sqlite3.connect('chat.db')
 
 # Configure session to use filesystem (instead of signed cookies)
-app.secret_key = "Daniel1234"
+app.secret_key = ""
 #app.config["SESSION_COOKIE_NAME"]  = 'tel'
 #app.config["SESSION_PERMANENT"] = False
 #app.config["SESSION_TYPE"] = "filesystem"
 #Session(app)
+
+# database settings
+from flask_socketio import SocketIO, emit, join_room, leave_room
+import mysql.connector
+from mysql.connector import Error
+from config import Config
+
+app = Flask(__name__)
+app.config.from_object(Config)
+socketio = SocketIO(app)
+
+def get_db():
+    try:
+        connection = mysql.connector.connect(
+            host=app.config['MYSQL_HOST'],
+            user=app.config['MYSQL_USER'],
+            port=app.config['MYSQL_PORT'],
+            password=app.config['MYSQL_PASSWORD'],
+            database=app.config['MYSQL_DB']
+        )
+        if connection.is_connected():
+            print("Connection successful")
+            return connection
+    except Error as e:
+        app.logger.error(f"Error while connecting to MySQL: {e}")
+        return None
+
 
 # image folder
 files = os.getcwd()
@@ -46,6 +74,7 @@ def after_request(response):
 
 def cen():
     tel = session['tel']
+    db = get_db()
     result = db.execute("SELECT * FROM profile WHERE telNumber=? ORDER BY id DESC LIMIT 1 ", tel)
     row = db.execute("SELECT * FROM members WHERE telNumber=? ", tel)
     name = row[0]["surName"] + " " + row[0]["firstName"]
@@ -69,6 +98,7 @@ def cen():
 
 # For showing 
 def showProfile(user):
+    db = get_db()
     result = db.execute("SELECT * FROM profile WHERE telNumber=? ORDER BY id DESC LIMIT 1 ", user)
     length = len(result)
     picture = None
@@ -90,6 +120,7 @@ def replace(str):
 @login_required
 def index():
     tel = session["tel"]
+    db = get_db()
     result = db.execute("SELECT * FROM friends")
     length = len(result)
     #unread, active = action        # for displaying unread messages numbers, and show a active status 
@@ -113,6 +144,7 @@ def signup_signin():
 # register route
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    db = get_db()
     """Register user"""
     
     # Forget any user_id
@@ -139,13 +171,17 @@ def register():
         elif password != confirmation:
             return render_template("signup_signin.html",reply="Password do not match", state='0')
         else:
-            rows = db.execute("SELECT * FROM members WHERE telNumber = ?", tel)
+            cursor = db.cursor(dictionary=True)  # Create a cursor
+            rows = cursor.execute("SELECT * FROM members WHERE telNumber = %s", (tel,))
             if (len(rows) == 1):
                 return render_template("signup_signin.html",reply="This number have been used",state='2')
             else:
-                dateTime = db.execute("SELECT datetime('now','localtime') as date")
-                db.execute("INSERT INTO onlineusers (id,telNumber,last_activity) VALUES(?,?,?)", None,tel, dateTime[0]["date"])
-                db.execute("INSERT INTO members (id,firstName,surName,telNumber,password) VALUES(?,?,?,?,?)", None,firstName,surName,tel,hash)
+                
+                dateTime = cursor.execute("SELECT datetime('now','localtime') as date")
+                cursor.execute("INSERT INTO onlineusers (id,telNumber,last_activity) VALUES(?,?,?)", None,tel, dateTime[0]["date"])
+                cursor.execute("INSERT INTO members (id,firstName,surName,telNumber,password) VALUES(?,?,?,?,?)", None,firstName,surName,tel,hash)
+                cursor.close()
+                db.close()
                 
                 return render_template("signup_signin.html", reply="Account created successfully", state='1')
     else:
@@ -155,6 +191,7 @@ def register():
 # login route
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    db = get_db()
     """Log user in"""
 
     # Forget any user_id
@@ -163,17 +200,23 @@ def login():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
         # Ensure username was submitted
+        
         if not request.form.get("tel"):
             return render_template("signup_signin.html",reply="Telephone number must be provided",state='0')
         
         # Ensure password was submitted
         elif not request.form.get("password"):
             return render_template("signup_signin.html",reply="Password must be provided",state='0') 
-
-
+        tel = request.form.get("tel")
+        password = request.form.get("password")
+        print(f"tel is {tel}, password is {password}")
         # Query database for telephone number
-        rows = db.execute("SELECT * FROM members WHERE telNumber = ?", request.form.get("tel"))
-
+        cursor = db.cursor(dictionary=True)  # Create a cursor
+        #rows = cursor.execute("SELECT * FROM members WHERE telNumber = ?", request.form.get("tel"))
+        cursor.execute("SELECT * FROM members WHERE telNumber = %s", (tel,))
+        rows = cursor.fetchall()  # Fetch all rows
+        cursor.close()
+        db.close()
         # Ensure telephone number exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["password"], request.form.get("password")):
             #return render_template("signup_signin.html",reply="Invalid username and/or password",state='0')
@@ -196,6 +239,7 @@ def login():
 @app.route("/message", methods=["GET", "POST"])
 @login_required
 def message():
+    db = get_db()
     """message"""
     if request.method == "POST":
         tel = session["tel"]
@@ -211,6 +255,7 @@ def message():
 @app.route("/message/<view>", methods=["GET", "POST"])
 @login_required
 def messages(view):
+    db = get_db()
     tel = session["tel"]  
     tim = time.strftime("%I:%M:%S%p", time.localtime())
     today = date.today()
@@ -248,6 +293,7 @@ def messages(view):
 @app.route("/friends")
 @login_required
 def friends():
+    db = get_db()
     # profile image
     pro, name = cen()
     print(cen())
@@ -298,6 +344,7 @@ def friends():
 @app.route("/friends/<name>")
 @login_required
 def add(name):
+    db = get_db()
     tel = session["tel"]
     user = db.execute("SELECT firstName,surName,telNumber from members WHERE telNumber = ? ", tel)
     print(user[0]["firstName"])
@@ -317,6 +364,7 @@ def add(name):
 @app.route("/friends/<remove>/<name>")
 @login_required
 def remove(remove,name):
+    db = get_db()
     print(f"remove is {name} na {remove}")
     tel = session["tel"]
     db.execute("DELETE FROM friendrequest WHERE userNumber=? AND friendNumber=?",tel, name)
@@ -326,6 +374,7 @@ def remove(remove,name):
 @app.route("/friends/<lop>/<confirm>/<name>")
 @login_required
 def confirm(lop,confirm,name):
+    db = get_db()
     tel = session['tel']
     result = db.execute("SELECT * FROM friendrequest WHERE userNumber=?", tel)
     for i in range(len(result)):
@@ -341,6 +390,7 @@ def confirm(lop,confirm,name):
 @app.route("/profile", methods=["GET","POST"])
 @login_required
 def profile():
+    db = get_db()
     tel = session['tel']
 
     # When request method is post
@@ -432,22 +482,33 @@ def action():
         return " "  '''
 
 
-from flask import Flask, render_template, request
+#from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
-import sqlite3
+#from flask_sqlalchemy import SQLAlchemy
+#import sqlite3
 import logging
 
 
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///yourdatabase.db'
+"""app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_POOL_SIZE'] = 5
+app.config['SQLALCHEMY_MAX_OVERFLOW'] = 10
+app.config['SQLALCHEMY_POOL_TIMEOUT'] = 30"""
+
+#db = SQLAlchemy(app)
+#Session(app)
 #socketio = SocketIO(app, cors_allowed_origins="*")
-socketio = SocketIO(app, ping_timeout=10, ping_interval=5, max_http_buffer_size=10**8)
+socketio = SocketIO(app, ping_timeout=10, ping_interval=5, max_http_buffer_size=10**9)
+
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG)
 
-def get_db():
+"""def get_db():
     conn = sqlite3.connect('chat.db')
     conn.row_factory = sqlite3.Row
-    return conn
+    return conn"""
 
 @socketio.on('connect')
 def handle_connect():
@@ -494,7 +555,7 @@ def handle_send_message(data):
         tim = time.strftime("%I:%M:%S%p", time.localtime())
         today = date.today()
         dat = today.strftime("%B %d, %Y")
-
+        print(f"Message from {user} to {friend} is {message}")
         # Broadcast the message to the room
         room = f"{user}_{friend}"
         emit('receive_message', {'msg': message, 'user': user}, room=room, broadcast=True)
