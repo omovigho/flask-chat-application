@@ -156,11 +156,11 @@ def register():
     password = request.form.get("password")
     confirmation = request.form.get("confirmation")  # confirming password
 
-    # Converting password to string before hashing
-    password_str = str(password)      
-    if password_str:
-        hash = generate_password_hash(password_str)
-
+    # Converting password to string before hashing    
+    print(f"password is {password}")
+    if password:
+        hash = generate_password_hash(password)
+        print(f"HASH PASS {hash}")
     """ User reached route via POST (as by submitting a form via POST) """
     if request.method == "POST":
         if not tel:
@@ -199,6 +199,51 @@ def register():
     else:
         return render_template("signup_signin.html")
 
+"""@app.route("/register", methods=["GET", "POST"])
+def register():
+    db = get_db()
+    Register user
+    
+    # Forget any user_id
+    session.clear()
+
+    # Getting user input
+    firstName = request.form.get("firstName")
+    surName = request.form.get("surName")
+    tel = request.form.get("tel")
+    password = request.form.get("password")
+    confirmation = request.form.get("confirmation")  # confirming password
+
+    # converting password to string before hashing
+    password_str = str(password)      
+    if password_str is not None:
+        hash = generate_password_hash(password_str)
+
+    User reached route via POST (as by submitting a form via POST) 
+    if request.method == "POST":
+        if not tel:
+            return render_template("signup_signin.html",reply="Phone number is required",state='0')
+        elif not password:
+           return render_template("signup_signin.html",reply="Password is required",state='0') 
+        elif password != confirmation:
+            return render_template("signup_signin.html",reply="Password do not match", state='0')
+        else:
+            cursor = db.cursor(dictionary=True)  # Create a cursor
+            rows = cursor.execute("SELECT * FROM members WHERE telNumber = %s", (tel,))
+            if (len(rows) == 1):
+                return render_template("signup_signin.html",reply="This number have been used",state='2')
+            else:
+                
+                dateTime = cursor.execute("SELECT datetime('now','localtime') as date")
+                cursor.execute("INSERT INTO onlineusers (id,telNumber,last_activity) VALUES(?,?,?)", None,tel, dateTime[0]["date"])
+                cursor.execute("INSERT INTO members (id,firstName,surName,telNumber,password) VALUES(?,?,?,?,?)", None,firstName,surName,tel,hash)
+                cursor.close()
+                db.close()
+                
+                return render_template("signup_signin.html", reply="Account created successfully", state='1')
+    else:
+        return render_template("signup_signin.html")"""
+
 
 # login route
 @app.route("/login", methods=["GET", "POST"])
@@ -212,38 +257,41 @@ def login():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
         # Ensure username was submitted
+        telNumber = request.form.get("tel")
+        password = request.form.get("password")
         
-        if not request.form.get("tel"):
+        print(f"telNumber is {telNumber}, password is {password}")
+        if not telNumber:
             return render_template("signup_signin.html",reply="Telephone number must be provided",state='0')
         
         # Ensure password was submitted
         elif not request.form.get("password"):
             return render_template("signup_signin.html",reply="Password must be provided",state='0') 
-        tel = request.form.get("tel")
-        password = request.form.get("password")
-        print(f"tel is {tel}, password is {password}")
+        
+        print(f"tel is {telNumber}, password is {password}")
         # Query database for telephone number
         cursor = db.cursor(dictionary=True)  # Create a cursor
         #rows = cursor.execute("SELECT * FROM members WHERE telNumber = ?", request.form.get("tel"))
-        cursor.execute("SELECT * FROM members WHERE telNumber = %s", (tel,))
+        cursor.execute("SELECT * FROM members WHERE telNumber = %s", (telNumber,))
         rows = cursor.fetchall()  # Fetch all rows
-        cursor.close()
-        db.close()
+        
+        print(f"hash is {rows[0]["password"]} - check - {check_password_hash(rows[0]["password"], password)} str {generate_password_hash(password)}")
         # Ensure telephone number exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["password"], request.form.get("password")):
-            #return render_template("signup_signin.html",reply="Invalid username and/or password",state='0')
-            return redirect("/signup_signin")
+        if len(rows) != 1 or not check_password_hash(rows[0]["password"], telNumber):
+            return render_template("signup_signin.html",reply="Invalid username and/or password",state='0')
+            #return redirect("/signup_signin")
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
         session["tel"] = rows[0]["telNumber"]
-
 
         # Redirect user to home page
         return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
+        cursor.close()
+        db.close()
         return render_template("signup_signin.html")
     
 
