@@ -75,23 +75,27 @@ def after_request(response):
 def cen():
     tel = session['tel']
     db = get_db()
-    result = db.execute("SELECT * FROM profile WHERE telNumber=? ORDER BY id DESC LIMIT 1 ", tel)
-    row = db.execute("SELECT * FROM members WHERE telNumber=? ", tel)
+    
+    cursor = db.cursor(dictionary=True)
+    
+    cursor.execute("SELECT * FROM profile WHERE telNumber=%s ORDER BY id DESC LIMIT 1", (tel,))
+    result = cursor.fetchall()
+    
+    cursor.execute("SELECT * FROM members WHERE telNumber=%s", (tel,))
+    row = cursor.fetchall()
+    
     name = row[0]["surName"] + " " + row[0]["firstName"]
+    
     length = len(result)
     imag = None
-    ima = None
-    #print("na name " + name) 
     for i in range(length):
-        imag  = result[i]["imageName"]
-        
-        
-    if imag == None:
+        imag = result[i]["imageName"]
+    
+    if imag is None:
         imag = "/static/photos/download.png"
-
-    else:
-        #print(imag)
-        pass
+    
+    cursor.close()
+    db.close()
     
     return imag, name
 
@@ -121,17 +125,17 @@ def replace(str):
 def index():
     tel = session["tel"]
     db = get_db()
-    result = db.execute("SELECT * FROM friends")
-    length = len(result)
+    cursor = db.cursor(dictionary=True)  # Create a cursor
+    cursor.execute("SELECT * FROM friends")
+    result = cursor.fetchall()
     #unread, active = action        # for displaying unread messages numbers, and show a active status 
     # profile image and name of user
     pro, name = cen()
     # finding all friends
-    res = db.execute("SELECT * FROM friends")
-    result_len = len(res)
+    result_len = len(result)
     #print("image of centre is:", pro)  
-    return render_template("index.html", result =result, show=showProfile, tel = tel, length= length,  
-                                    imag =pro, name=name, res=res, result_len=result_len, replace=replace)
+    return render_template("index.html", result =result, show=showProfile, tel = tel,  
+                                    imag =pro, name=name, result_len=result_len, replace=replace)
 
 
 
