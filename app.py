@@ -413,11 +413,21 @@ def add(name):
 
 @app.route("/friends/<remove>/<name>")
 @login_required
-def remove(remove,name):
+def remove(remove, name):
     db = get_db()
-    print(f"remove is {name} na {remove}")
+    cursor = db.cursor(dictionary=True)
+
     tel = session["tel"]
-    db.execute("DELETE FROM friendrequest WHERE userNumber=? AND friendNumber=?",tel, name)
+    
+    print(f"remove is {name} na {remove}")
+
+    # Execute delete query
+    cursor.execute("DELETE FROM friendrequest WHERE userNumber=%s AND friendNumber=%s", (tel, name))
+    db.commit()
+
+    cursor.close()
+    db.close()
+
     return redirect("/friends")
 
 
