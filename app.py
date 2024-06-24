@@ -203,51 +203,6 @@ def register():
     else:
         return render_template("signup_signin.html")
 
-"""@app.route("/register", methods=["GET", "POST"])
-def register():
-    db = get_db()
-    Register user
-    
-    # Forget any user_id
-    session.clear()
-
-    # Getting user input
-    firstName = request.form.get("firstName")
-    surName = request.form.get("surName")
-    tel = request.form.get("tel")
-    password = request.form.get("password")
-    confirmation = request.form.get("confirmation")  # confirming password
-
-    # converting password to string before hashing
-    password_str = str(password)      
-    if password_str is not None:
-        hash = generate_password_hash(password_str)
-
-    User reached route via POST (as by submitting a form via POST) 
-    if request.method == "POST":
-        if not tel:
-            return render_template("signup_signin.html",reply="Phone number is required",state='0')
-        elif not password:
-           return render_template("signup_signin.html",reply="Password is required",state='0') 
-        elif password != confirmation:
-            return render_template("signup_signin.html",reply="Password do not match", state='0')
-        else:
-            cursor = db.cursor(dictionary=True)  # Create a cursor
-            rows = cursor.execute("SELECT * FROM members WHERE telNumber = %s", (tel,))
-            if (len(rows) == 1):
-                return render_template("signup_signin.html",reply="This number have been used",state='2')
-            else:
-                
-                dateTime = cursor.execute("SELECT datetime('now','localtime') as date")
-                cursor.execute("INSERT INTO onlineusers (id,telNumber,last_activity) VALUES(?,?,?)", None,tel, dateTime[0]["date"])
-                cursor.execute("INSERT INTO members (id,firstName,surName,telNumber,password) VALUES(?,?,?,?,?)", None,firstName,surName,tel,hash)
-                cursor.close()
-                db.close()
-                
-                return render_template("signup_signin.html", reply="Account created successfully", state='1')
-    else:
-        return render_template("signup_signin.html")"""
-
 
 # login route
 @app.route("/login", methods=["GET", "POST"])
@@ -409,19 +364,50 @@ def friends():
 @login_required
 def add(name):
     db = get_db()
+    cursor = db.cursor(dictionary=True)
+    
     tel = session["tel"]
-    user = db.execute("SELECT firstName,surName,telNumber from members WHERE telNumber = ? ", tel)
+    
+    # Fetch user details
+    cursor.execute("SELECT firstName, surName, telNumber FROM members WHERE telNumber = %s", (tel,))
+    user = cursor.fetchall()
+    
+    if not user:
+        # Handle case where user is not found
+        cursor.close()
+        db.close()
+        return "User not found", 404
+
     print(user[0]["firstName"])
-    other =  "Other Members"
-    friend = db.execute("SELECT firstName,surName,telNumber FROM members WHERE telNumber=?", name) 
-    result = db.execute("SELECT * FROM friendrequest WHERE userNumber=? AND friendNumber=?", name, tel)
+    
+    other = "Other Members"
+    
+    # Fetch friend details
+    cursor.execute("SELECT firstName, surName, telNumber FROM members WHERE telNumber = %s", (name,))
+    friend = cursor.fetchall()
+    
+    if not friend:
+        # Handle case where friend is not found
+        cursor.close()
+        db.close()
+        return "Friend not found", 404
+
+    # Check if friend request already exists
+    cursor.execute("SELECT * FROM friendrequest WHERE userNumber = %s AND friendNumber = %s", (name, tel))
+    result = cursor.fetchall()
+    
     userName = user[0]['surName'] + ' ' + user[0]['firstName']
     friendName = friend[0]['surName'] + ' ' + friend[0]['firstName']
+    
     if not result:
         print(f"number is {name}")
-        db.execute("INSERT INTO friendrequest VALUES(? , ?, ? , ?)", 
-                    friendName,friend[0]['telNumber'],userName,user[0]['telNumber'])
-         
+        cursor.execute("INSERT INTO friendrequest (friendName, friendNumber, userName, userNumber) VALUES (%s, %s, %s, %s)", 
+                       (friendName, friend[0]['telNumber'], userName, user[0]['telNumber']))
+        db.commit()
+
+    cursor.close()
+    db.close()
+    
     return redirect("/friends")
 
 
