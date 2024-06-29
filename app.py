@@ -418,11 +418,9 @@ def remove(remove, name):
     cursor = db.cursor(dictionary=True)
 
     tel = session["tel"]
-    
-    print(f"remove is {name} na {remove}")
 
     # Execute delete query
-    cursor.execute("DELETE FROM friendrequest WHERE userNumber=%s AND friendNumber=%s", (tel, name))
+    cursor.execute("DELETE FROM friendrequest WHERE userNumber=%s AND friendNumber=%s", (name, tel))
     db.commit()
 
     cursor.close()
@@ -440,7 +438,7 @@ def confirm(lop, confirm, name):
     tel = session['tel']
     
     # Select friend requests
-    cursor.execute("SELECT * FROM friendrequest WHERE userNumber=%s", (tel,))
+    cursor.execute("SELECT * FROM friendrequest WHERE friendNumber=%s", (tel,))
     result = cursor.fetchall()
 
     for i in range(len(result)):
@@ -454,13 +452,13 @@ def confirm(lop, confirm, name):
                 (result[i]["userName"], result[i]["userNumber"], result[i]["friendName"], result[i]["friendNumber"]))
             
             # Delete from friendrequest table
-            cursor.execute("DELETE FROM friendrequest WHERE userNumber=%s AND friendNumber=%s", (tel, result[i]["friendNumber"]))
+            cursor.execute("DELETE FROM friendrequest WHERE userNumber=%s AND friendNumber=%s", (result[i]["friendNumber"], tel))
             db.commit()
 
     cursor.close()
     db.close()
 
-    return redirect("/friends") 
+    return redirect("/friends")
 
 
 @app.route("/profile", methods=["GET","POST"])
