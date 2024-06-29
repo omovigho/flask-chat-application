@@ -400,7 +400,6 @@ def add(name):
     friendName = friend[0]['surName'] + ' ' + friend[0]['firstName']
     
     if not result:
-        print(f"number is {name}")
         cursor.execute("INSERT INTO friendrequest (friendName, friendNumber, userName, userNumber) VALUES (%s, %s, %s, %s)", 
                        (friendName, friend[0]['telNumber'], userName, user[0]['telNumber']))
         db.commit()
