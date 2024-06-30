@@ -1,0 +1,90 @@
+{% extends "layout.html"%}
+
+{% block title %}Home{% endblock %}
+
+{% block left %}
+    
+    <div class="text-center">
+        <h2><b>Friends</b></h2>
+    </div>
+    {% for i in range(result_len) %}
+        <table class="table">
+        <tr>   
+        {% if result[i]["userNumber"] == tel %}
+            <td><img src={{show(result[i]["friendNumber"])}} class="profile" alt="Profile picture" width="75" height="75"></td>
+            <td><a href={{url_for("messages", view=result[i]["friendNumber"])}}>{{result[i]["friendName"]}}</a></td>
+        {% elif result[i]["friendNumber"] == tel %}
+            <td><img src={{show(result[i]["userNumber"])}} class="profile" alt="Profile picture" width="75" height="75"></td>
+            <td><a href={{url_for("messages", view=result[i]["userNumber"])}}>{{result[i]["userName"]}}</a></td>
+        {% endif %}
+        </tr> 
+        </table>
+    {% endfor %}
+{% endblock %}
+
+
+{% block center %}
+    {% for i in range(result_len) %}
+        {% if result[i]["userNumber"] == tel %}
+            <div class="con">
+                <div class="lef">
+                    
+                    <img src={{show(result[i]["friendNumber"])}}  class="profile prof" alt="Profile picture" width="80" height="80">
+                    <div id='active{{replace(result[i]["friendName"])}}'></div>
+                </div>
+
+                <div class="ri">
+                    <div id='change{{replace(result[i]["friendName"])}}'  class='name'><a href={{url_for("messages", view=result[i]["friendNumber"])}}>{{result[i]["friendName"]}}</a></div>
+                    <div id='{{replace(result[i]["friendName"])}}' ></div>
+                </div>
+                
+            </div>
+
+            <script>
+                //online('{{result[i]["userNumber"]}}', '{{result[i]["friendNumber"]}}', '{{result[i]["friendName"]}}');
+                $(document).ready(function() {
+                    online('{{result[i]["userNumber"]}}', '{{result[i]["friendNumber"]}}', '{{result[i]["friendName"]}}');
+                });
+            </script>
+
+        {% elif result[i]["friendNumber"] == tel %}
+            <div class="con">
+
+                <div class="lef">
+                    
+                    <img src={{show(result[i]["userNumber"])}} id="prof" class="profile prof" alt="Profile picture" width="80" height="80">
+                    <div id='active{{replace(result[i]["userName"])}}'></div>
+                </div>
+
+                <div class="ri">
+                    <div id='change{{replace(result[i]["userName"])}}'class='name'><a href={{url_for("messages", view=result[i]["userNumber"])}}>{{result[i]["userName"]}}</a></div>
+                    <div id='{{replace(result[i]["userName"])}}'></div>
+                </div>
+
+            </div>
+
+            <script>
+                //online('{{result[i]["friendNumber"]}}', '{{result[i]["userNumber"]}}', '{{result[i]["userName"]}}');
+                $(document).ready(function() {
+                online('{{result[i]["friendNumber"]}}', '{{result[i]["userNumber"]}}', '{{result[i]["userName"]}}');
+                });
+            </script>
+
+            
+        {% endif %}
+    {% endfor %}
+{% endblock %}
+
+
+{% block right %}
+<div class="text-center">
+    <img src={{imag}} class="profile" alt="Profile picture" width="200" height="200">
+</div>
+
+<form action='/profile' method='post' enctype='multipart/form-data'>
+    <input type='file' name='filename' size='10' title="file"/>
+    <input type='submit' value='Upload' />
+</form>
+<h3>{{name}}</h3>
+<a class="btn btn-primary logout" href={{url_for("logout")}}>Logout</a>
+{% endblock %}
