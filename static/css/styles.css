@@ -1,0 +1,227 @@
+*{
+    font-family: 'Nunito', sans-serif;
+    margin:0; padding:0;
+    box-sizing: border-box;
+    text-decoration: none;
+    outline: none; border:none;
+    transition: all .2s linear;
+}
+
+html{
+    /*font-size: 62.5%;*/
+    /*overflow-x: hidden;*/
+    scroll-padding-top: 5.5rem;
+    scroll-behavior: smooth;
+}
+body
+{   
+    background-color:#E2EDF9;
+    height: 100%;
+    width: 100%;
+}
+.nav_bar{
+    width: 100%;
+    position: fixed;
+    height: 10%;
+    margin-top: -4.0em; 
+    z-index: 4;
+}
+
+a{
+    text-decoration: none;
+}
+
+.profile {
+    border            :1px solid black;
+    border-radius: 50%;
+	 -moz-box-shadow   :2px 2px 2px #888;
+	 -webkit-box-shadow:2px 2px 2px #888;
+	 box-shadow        :2px 2px 2px #888; 
+}
+
+.mt
+{
+    background-color: white;
+    box-sizing: border-box;
+    box-shadow: 1px;
+    
+}
+
+.main{
+    height: 90%;
+    width: 100%;
+    position: absolute;
+    margin-top: 2.0em; 
+    z-index: 1;
+}
+.sign_main{
+    height: 100vh;
+    width: 100%;
+    position: absolute;
+    overflow: hidden;
+    margin-top: -2.9em; 
+}
+
+.contain
+{
+ max-width: 25%;
+}
+.contet
+{
+ background-color: white;
+ font-size: 1.7rem;
+ height: 100vh;
+ /*scroll-behavior: smooth;
+ overflow: scroll;*/
+}
+
+.d-flex
+{
+    margin-left: 0rem;
+    margin-right: 0rem;
+    /* margin-top: -2.95rem; */
+    height: 100%;
+}
+
+
+.table{
+    border: 0px solid black;
+    border-color: white;
+}
+
+.logout{
+    background-color: azure;
+    color: black;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+.btn{
+    font-weight: bold;
+    font-size: medium;
+    letter-spacing: .2em;
+}
+.user {
+    
+    width: 75%;
+    color      :black;
+    float: right;
+    border-radius:1em;
+    margin-right: 2%;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.user span{
+    background :#0D6EFD;
+    padding: 5px 10px;
+    float: right;
+    border-radius:1em;
+}
+.friend {
+    width: 75%;
+    
+    color      :black;
+    float: left;
+    margin-left: 2%;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+.friend span{
+    background :#E2EDF9;
+    padding: 5px 10px;
+    float: left;
+    border-radius:1em;
+}
+
+.lop{
+    margin-top: 10px ;
+    margin-bottom: 10px;
+}
+.date{
+    width: 100%;
+    height: 100px;
+    color      :black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.date span{
+    background-color: azure;
+    padding: 5px 10px;
+    border-radius:1em;
+}
+
+
+.prof{
+    margin-top: 1em;
+    position: relative;
+}
+
+.unread{
+    background: rgb(60, 60, 211);
+    padding: 3px 10px;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    border-radius: 1em;
+    float: right;
+    font-size: .9em;
+    color: white;
+}
+
+
+
+.active{
+    margin-top: -.9em;
+    position: relative;
+    margin-left: 9%;
+    width: 15px;
+    height: 15px;
+    border-radius: 1em;
+    background-color: green;
+    z-index: 100;
+    border: 2px solid white;
+}
+
+.name{
+    margin-top: -2.5em;
+    margin-left: 20%;
+    letter-spacing: .1em;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.con{
+    margin-bottom: 50px;
+}
+
+.fr{
+    font-weight: bold;
+    margin-top: -2.5em;
+    margin-left: 20%;
+    letter-spacing: .5rem;
+}
+
+
+/* media screen for friends */
+@media (width<600px){
+    .contain{
+        display: none;
+        max-width: 0%;
+    }
+    .contet{
+        width: 100%;
+        font-size: .9em;
+        text-decoration: none;
+
+    }
+    .fr{
+        margin-left: 30%;
+    }
+
+    .ri{
+        margin-top: -4.3em;
+        margin-left: 20%;
+    }
+}
+
