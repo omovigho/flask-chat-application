@@ -562,13 +562,6 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 import logging
 
 
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///yourdatabase.db'
-"""app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_POOL_SIZE'] = 5
-app.config['SQLALCHEMY_MAX_OVERFLOW'] = 10
-app.config['SQLALCHEMY_POOL_TIMEOUT'] = 30"""
-
 #db = SQLAlchemy(app)
 #Session(app)
 #socketio = SocketIO(app, cors_allowed_origins="*")
@@ -666,22 +659,29 @@ def handle_update_user_activity(data):
         user = data['user']
         db = get_db()
         cursor = db.cursor()
-        cursor.execute("UPDATE onlineusers SET last_activity = datetime('now','localtime') WHERE telNumber = ?", (user,))
+        cursor.execute("UPDATE onlineusers SET last_activity = NOW() WHERE telNumber = %s", (user,))
         db.commit()
     except Exception as e:
         app.logger.error(f'Error on update_user_activity: {e}')
+    finally:
+        cursor.close()
+        db.close()
 
+        
 @socketio.on('fetch_user_login_data')
 def handle_fetch_user_login_data(data):
     try:
         friend = data['friend']
         db = get_db()
         cursor = db.cursor()
-        cursor.execute("SELECT id FROM onlineusers WHERE last_activity > datetime('now','localtime','-10 second') AND telNumber=?", (friend,))
+        cursor.execute("SELECT id FROM onlineusers WHERE last_activity > NOW() - INTERVAL 10 SECOND AND telNumber=%s", (friend,))
         online = cursor.fetchone() is not None
         emit('user_status', {'friend': friend, 'online': online})
     except Exception as e:
         app.logger.error(f'Error on fetch_user_login_data: {e}')
+    finally:
+        cursor.close()
+        db.close()
 
 @socketio.on('fetch_unread_count')
 def handle_fetch_unread_count(data):
