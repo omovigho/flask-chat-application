@@ -5,7 +5,6 @@
 {% block main %}
     <script
     src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/signup.css" />
     <div class="container">
       <div class="forms-container">
         
@@ -29,6 +28,7 @@
               <input type="password" name="password" placeholder="Password" />
             </div>
             <input type="submit" value="Login" class="btn solid" />
+            <a href={{url_for("forgot_password")}} class="forgot-password">Forgot Password...</a>
             <p class="social-text"> Or </p>
             <div class="social-media">
               <a href="#" class="social-icon">
@@ -107,7 +107,7 @@
               Sign up
             </button>
           </div>
-          <img src="/static/photos/log.svg" class="image" alt="" />
+          <img src="/static/icons/log.svg" class="image" alt="" />
         </div>
         <div class="panel right-panel">
           <div class="content">
@@ -120,10 +120,10 @@
               Sign in
             </button>
           </div>
-          <img src="/static/photos/register.svg" class="image" alt="" />
+          <img src="/static/icons/register.svg" class="image" alt="" />
         </div>
       </div>
     </div>
 
-    <script src="/static/app.js"></script>
+    <script src="/static/js/app.js"></script>
     {% endblock %}

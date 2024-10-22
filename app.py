@@ -72,24 +72,6 @@ def after_request(response):
     return response
 
 
-"""def cen():
-    tel = session['tel']
-    db = get_db()
-    
-    result = db.execute("SELECT * FROM profile WHERE telNumber=? ORDER BY id DESC LIMIT 1 ", tel)
-    row = db.execute("SELECT * FROM members WHERE telNumber=? ", tel)
-    name = row[0]["surName"] + " " + row[0]["firstName"]
-    length = len(result)
-    imag = None
-    for i in range(length):
-        imag  = result[i]["imageName"]
-             
-    if imag == None:
-        imag = "/static/photos/download.png"
-    else:
-        pass
-    
-    return imag, name"""
 def cen():
     tel = session['tel']
     db = get_db()
@@ -110,7 +92,7 @@ def cen():
         imag = result[i]["imageName"]
     
     if imag is None:
-        imag = "/static/photos/download.png"
+        imag = "/static/icons/download.png"
     
     cursor.close()
     db.close()
@@ -137,7 +119,7 @@ def showProfile(user):
         picture = result[i]["imageName"]
     
     if picture is None:
-        picture = "/static/photos/download.png"
+        picture = "/static/icons/download.png"
     
     return picture
 
@@ -162,15 +144,13 @@ def index():
     result_len = len(result)
     return render_template("index.html", result =result, show=showProfile, tel = tel,  
                                     imag =pro, name=name, result_len=result_len, replace=replace)
-    """return render_template("index.html", result =result, show=showProfile, tel = tel, length= length,  
-                                    imag =pro, name=name, res=res, result_len=result_len, replace=replace)"""
 
 
 
 #signup and signin route
-@app.route("/signup_signin")
+@app.route("/signup-signin")
 def signup_signin():
-    return render_template("signup_signin.html")
+    return render_template("signup-signin.html")
 
 
 # register route
@@ -188,23 +168,21 @@ def register():
     password = request.form.get("password")
     confirmation = request.form.get("confirmation")  # confirming password
 
-    # Converting password to string before hashing    
-    print(f"password is {password}")
+    # Converting password to string before hashing
     if password:
         hash = generate_password_hash(password)
-        print(f"HASH PASS {hash}")
     """ User reached route via POST (as by submitting a form via POST) """
     if request.method == "POST":
         if not tel:
-            return render_template("signup_signin.html", reply="Phone number is required", state='0')
+            return render_template("signup-signin.html", reply="Phone number is required", state='0')
         elif not password:
-           return render_template("signup_signin.html", reply="Password is required", state='0') 
+           return render_template("signup-signin.html", reply="Password is required", state='0') 
         elif password != confirmation:
-            return render_template("signup_signin.html", reply="Passwords do not match", state='0')
+            return render_template("signup-signin.html", reply="Passwords do not match", state='0')
         else:
             db = get_db()
             if db is None:
-                return render_template("signup_signin.html", reply="Failed to connect to the database", state='0')
+                return render_template("signup-signin.html", reply="Failed to connect to the database", state='0')
             
             try:
                 cursor = db.cursor(dictionary=True)  # Create a cursor
@@ -212,7 +190,7 @@ def register():
                 rows = cursor.fetchall()
 
                 if len(rows) == 1:
-                    return render_template("signup_signin.html", reply="This number has been used", state='2')
+                    return render_template("signup-signin.html", reply="This number has been used", state='2')
                 else:
                     cursor.execute("SELECT NOW() as date")
                     dateTime = cursor.fetchone()
@@ -224,12 +202,12 @@ def register():
                     cursor.close()
                     db.close()
                     
-                    return render_template("signup_signin.html", reply="Account created successfully", state='1')
+                    return render_template("signup-signin.html", reply="Account created successfully", state='1')
             except mysql.connector.Error as e:
                 app.logger.error(f"Error while querying the database: {e}")
-                return render_template("signup_signin.html", reply="An error occurred while registering", state='0')
+                return render_template("signup-signin.html", reply="An error occurred while registering", state='0')
     else:
-        return render_template("signup_signin.html")
+        return render_template("signup-signin.html")
 
 
 # login route
@@ -247,15 +225,13 @@ def login():
         telNumber = request.form.get("tel")
         password = request.form.get("password")
         
-        print(f"telNumber is {telNumber}, password is {password}")
         if not telNumber:
-            return render_template("signup_signin.html",reply="Telephone number must be provided",state='0')
+            return render_template("signup-signin.html",reply="Telephone number must be provided",state='0')
         
         # Ensure password was submitted
         elif not request.form.get("password"):
-            return render_template("signup_signin.html",reply="Password must be provided",state='0') 
+            return render_template("signup-signin.html",reply="Password must be provided",state='0') 
         
-        print(f"tel is {telNumber}, password is {password}")
         # Query database for telephone number
         cursor = db.cursor(dictionary=True)  # Create a cursor
         #rows = cursor.execute("SELECT * FROM members WHERE telNumber = ?", request.form.get("tel"))
@@ -265,15 +241,10 @@ def login():
         if len(rows) > 0:
             print(f"hash is {rows[0]['password']} - check - {check_password_hash(rows[0]['password'], password)} str {generate_password_hash(password)}")
         else:
-            return render_template("signup_signin.html",reply="Invalid username and/or password",state='0')
-
+            return render_template("signup-signin.html",reply="Invalid username and/or password",state='0')
         
-        
-        #print(f"hash is {rows[0]["password"]} - check - {check_password_hash(rows[0]["password"], password)} str {generate_password_hash(password)}")
-        # Ensure telephone number exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["password"], password):
-            return render_template("signup_signin.html",reply="Invalid username and/or password",state='0')
-            #return redirect("/signup_signin")
+            return render_template("signup-signin.html",reply="Invalid username and/or password",state='0')
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
@@ -284,11 +255,52 @@ def login():
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        #cursor.close()
-        #db.close()
-        return render_template("signup_signin.html")
+        return render_template("signup-signin.html")
     
 
+# change password route
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    db = get_db()
+    # Forget any user_id
+    session.clear()
+
+    # Getting user input
+    if request.method == "POST":
+        firstName = request.form.get("firstName")
+        telNumber = request.form.get("tel")
+        password = request.form.get("password")
+        confirmation = request.form.get("confirmation")  # confirming password
+        if not telNumber:
+            return render_template("forgot-password.html", reply="Phone number is required", state='0')
+        elif not password:
+            return render_template("forgot-password.html", reply="Password is required", state='0') 
+        elif password != confirmation:
+            return render_template("forgot-password.html", reply="Passwords do not match", state='0')
+        else:
+            db = get_db()
+            if db is None:
+                return render_template("signup-signin.html", reply="Failed to connect to the database", state='0')
+            
+            try:
+                cursor = db.cursor(dictionary=True)  # Create a cursor
+                cursor.execute("SELECT * FROM members WHERE telNumber = %s and firstName = %s", (telNumber, firstName))
+                rows = cursor.fetchall()
+
+                if len(rows) == 1:
+                    cursor.execute("UPDATE members SET password = %s WHERE telNumber = %s", (generate_password_hash(password), telNumber))
+                    db.commit()
+                    cursor.close()
+                    db.close()
+                    return render_template("signup-signin.html", reply="Your password have been updated successfully", state='2')
+                else:
+                    return render_template("forgot-password.html", reply="Your credentials were not correct", state='2')
+            except mysql.connector.Error as e:
+                app.logger.error(f"Error while querying the database: {e}")
+                return render_template("forgot-password.html", reply="An error occurred while updating", state='0')
+    else:
+        return render_template("forgot-password.html")
+    
 '''# message route
 @app.route("/message", methods=["GET", "POST"])
 @login_required
@@ -634,7 +646,7 @@ def logout():
     session.clear()
 
     # Redirect user to login form
-    return redirect("/")
+    return redirect("/signup-signin")
     
 
 '''@app.route("/action", methods=["GET","POST"])
