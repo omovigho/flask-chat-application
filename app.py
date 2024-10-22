@@ -48,7 +48,7 @@ def get_db():
             database=app.config['MYSQL_DB']
         )
         if connection.is_connected():
-            print("Connection successful")
+            #print("Connection successful")
             return connection
     except Error as e:
         app.logger.error(f"Error while connecting to MySQL: {e}")
@@ -72,20 +72,38 @@ def after_request(response):
     return response
 
 
-def cen():
+"""def cen():
     tel = session['tel']
     db = get_db()
     
+    result = db.execute("SELECT * FROM profile WHERE telNumber=? ORDER BY id DESC LIMIT 1 ", tel)
+    row = db.execute("SELECT * FROM members WHERE telNumber=? ", tel)
+    name = row[0]["surName"] + " " + row[0]["firstName"]
+    length = len(result)
+    imag = None
+    for i in range(length):
+        imag  = result[i]["imageName"]
+             
+    if imag == None:
+        imag = "/static/photos/download.png"
+    else:
+        pass
+    
+    return imag, name"""
+def cen():
+    tel = session['tel']
+    db = get_db()
+    print(f"tel number is {tel}")
     cursor = db.cursor(dictionary=True)
     
     cursor.execute("SELECT * FROM profile WHERE telNumber=%s ORDER BY id DESC LIMIT 1", (tel,))
     result = cursor.fetchall()
-    
+    print(result)
     cursor.execute("SELECT * FROM members WHERE telNumber=%s", (tel,))
     row = cursor.fetchall()
     
     name = row[0]["surName"] + " " + row[0]["firstName"]
-    
+    print(f"Name is {name}")
     length = len(result)
     imag = None
     for i in range(length):
@@ -100,20 +118,29 @@ def cen():
     return imag, name
 
 
+
 # For showing 
 def showProfile(user):
     db = get_db()
-    result = db.execute("SELECT * FROM profile WHERE telNumber=? ORDER BY id DESC LIMIT 1 ", user)
+    cursor = db.cursor(dictionary=True)
+    
+    # Execute the query
+    cursor.execute("SELECT * FROM profile WHERE telNumber=%s ORDER BY id DESC LIMIT 1", (user,))
+    result = cursor.fetchall()
+    cursor.close()
+    db.close()
+    
     length = len(result)
     picture = None
+    
     for i in range(length):
-        picture  = result[i]["imageName"]
-    if picture == None:
+        picture = result[i]["imageName"]
+    
+    if picture is None:
         picture = "/static/photos/download.png"
-    else:
-        pass
-        #print(picture)
+    
     return picture
+
 
 def replace(str):
     value = str.replace(' ','')
@@ -133,9 +160,10 @@ def index():
     pro, name = cen()
     # finding all friends
     result_len = len(result)
-    #print("image of centre is:", pro)  
     return render_template("index.html", result =result, show=showProfile, tel = tel,  
                                     imag =pro, name=name, result_len=result_len, replace=replace)
+    """return render_template("index.html", result =result, show=showProfile, tel = tel, length= length,  
+                                    imag =pro, name=name, res=res, result_len=result_len, replace=replace)"""
 
 
 
@@ -233,10 +261,17 @@ def login():
         #rows = cursor.execute("SELECT * FROM members WHERE telNumber = ?", request.form.get("tel"))
         cursor.execute("SELECT * FROM members WHERE telNumber = %s", (telNumber,))
         rows = cursor.fetchall()  # Fetch all rows
+
+        if len(rows) > 0:
+            print(f"hash is {rows[0]['password']} - check - {check_password_hash(rows[0]['password'], password)} str {generate_password_hash(password)}")
+        else:
+            return render_template("signup_signin.html",reply="Invalid username and/or password",state='0')
+
         
-        print(f"hash is {rows[0]["password"]} - check - {check_password_hash(rows[0]["password"], password)} str {generate_password_hash(password)}")
+        
+        #print(f"hash is {rows[0]["password"]} - check - {check_password_hash(rows[0]["password"], password)} str {generate_password_hash(password)}")
         # Ensure telephone number exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["password"], telNumber):
+        if len(rows) != 1 or not check_password_hash(rows[0]["password"], password):
             return render_template("signup_signin.html",reply="Invalid username and/or password",state='0')
             #return redirect("/signup_signin")
 
@@ -249,12 +284,12 @@ def login():
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        cursor.close()
-        db.close()
+        #cursor.close()
+        #db.close()
         return render_template("signup_signin.html")
     
 
-# message route
+'''# message route
 @app.route("/message", methods=["GET", "POST"])
 @login_required
 def message():
@@ -305,7 +340,75 @@ def messages(view):
             
     else:
         return render_template("message.html", view=view, tel=tel, row=row, length=length, dat=dat, res=res, rout=rout,
-                                                 imag=pro, name=name, show=showProfile, result_len=result_len)
+                                                 imag=pro, name=name, show=showProfile, result_len=result_len)'''
+                                                 
+
+# message route
+@app.route("/message", methods=["GET", "POST"])
+@login_required
+def message():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    
+    if request.method == "POST":
+        tel = session["tel"]
+        # Other members list
+        cursor.execute("SELECT firstName, surName, telNumber FROM members")
+        rows = cursor.fetchall()
+        text = request.form.get("text")
+        print(f"completely achieved type: {text}")
+        return redirect("/")
+    else:
+        cursor.close()
+        db.close()
+        return redirect("/index")
+
+
+@app.route("/message/<view>", methods=["GET", "POST"])
+@login_required
+def messages(view):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    tel = session["tel"]
+    tim = time.strftime("%I:%M:%S%p", time.localtime())
+    today = date.today()
+    dat = today.strftime("%B %d, %Y")
+    
+    cursor.execute("SELECT * FROM message")
+    row = cursor.fetchall()
+    length = len(row)
+    rout = "/message/" + view
+    
+    # Finding all friends
+    cursor.execute("SELECT * FROM friends")
+    res = cursor.fetchall()
+    result_len = len(res)
+    
+    # Profile image
+    pro, name = cen()
+    
+    # When a user types and submits a message
+    if request.method == "POST":
+        text = request.form.get("text")
+        if text != "":  
+            cursor.execute("SELECT * FROM message WHERE (sender=%s AND receiver=%s AND date=%s) OR (sender=%s AND receiver=%s AND date=%s)",
+                           (tel, view, dat, view, tel, dat))
+            query = cursor.fetchall()
+            if query:
+                cursor.execute("INSERT INTO message (sender, receiver, time, date, content, status) VALUES (%s, %s, %s, %s, %s, %s)",
+                               (tel, view, tim, 'Same', text, 'unseen'))
+            else:
+                cursor.execute("INSERT INTO message (sender, receiver, time, date, content, status) VALUES (%s, %s, %s, %s, %s, %s)",
+                               (tel, view, tim, dat, text, 'unseen'))
+            db.commit()
+            cursor.close()
+            db.close()
+            return redirect(rout)
+    else:
+        cursor.close()
+        db.close()
+        return render_template("message.html", view=view, tel=tel, row=row, length=length, dat=dat, res=res, rout=rout,
+                               imag=pro, name=name, show=showProfile, result_len=result_len)
 
 
 
@@ -316,48 +419,67 @@ def friends():
     # profile image
     pro, name = cen()
     print(cen())
-    #print("name is " + name)
-   # """message"""
     tel = session["tel"]
-    res = db.execute("SELECT * FROM friends")
+    
+    cursor = db.cursor(dictionary=True)
+    
+    cursor.execute("SELECT * FROM friends")
+    res = cursor.fetchall()
     result_len = len(res)
-    #Other members list
-    rows = db.execute("SELECT firstName,surName,telNumber from members")
+    
+    # Other members list
+    cursor.execute("SELECT firstName, surName, telNumber FROM members")
+    rows = cursor.fetchall()
     num = len(rows)
     mem = []
-
-    #Your friend request list
+    
+    # Your friend request list
     friends = False
-    req =  "Friend Request"
+    req = "Friend Request"
     fr = []
-    result = db.execute("SELECT * FROM friendrequest WHERE userNumber=?", tel)
+    
+    cursor.execute("SELECT * FROM friendrequest WHERE friendNumber = %s", (tel,))
+    result = cursor.fetchall()
     nu = len(result)
+    
     for i in range(nu):
-        if (result[i]["userNumber"] == tel ):
-                #showProfile(row[3]);
-                fr.append(result[i])
-                friends = True   
+        if result[i]["friendNumber"] == tel:
+            fr.append(result[i])
+            friends = True
+    
     no_request = "You don't have any friend request yet."
-    if not friends: 
+    if not friends:
         fr.append(no_request)
-
     
     for j in range(num):
-        if (rows[j]["telNumber"] == tel):
+        if rows[j]["telNumber"] == tel:
             continue
-        t1 = db.execute("SELECT * FROM friendrequest WHERE userNumber= ?  AND friendNumber= ? ", rows[j]['telNumber'], tel)
-        t2 = db.execute("SELECT * FROM friendrequest WHERE userNumber= ? AND friendNumber= ?", tel, rows[j]['telNumber'])
-        t3 = db.execute("SELECT * FROM friends WHERE userNumber= ? AND friendNumber= ? ", rows[j]['telNumber'], tel)
-        t4 = db.execute("SELECT * FROM friends WHERE userNumber= ? AND friendNumber= ?", tel, rows[j]['telNumber'])
-        if (t1 or t2 or t3 or t4):
+        
+        cursor.execute("SELECT * FROM friendrequest WHERE userNumber = %s AND friendNumber = %s", (rows[j]['telNumber'], tel))
+        t1 = cursor.fetchall()
+        
+        cursor.execute("SELECT * FROM friendrequest WHERE userNumber = %s AND friendNumber = %s", (tel, rows[j]['telNumber']))
+        t2 = cursor.fetchall()
+        
+        cursor.execute("SELECT * FROM friends WHERE userNumber = %s AND friendNumber = %s", (rows[j]['telNumber'], tel))
+        t3 = cursor.fetchall()
+        
+        cursor.execute("SELECT * FROM friends WHERE userNumber = %s AND friendNumber = %s", (tel, rows[j]['telNumber']))
+        t4 = cursor.fetchall()
+        
+        if t1 or t2 or t3 or t4:
             continue
+        
         mem.append(rows[j])
-        #showProfile(row[2]);
     
     fr_length = len(fr)
     length = len(mem)
-    return render_template("friends.html", show=showProfile,tel=tel, res=res,result_len=result_len, name=name,
-                        mem=mem, length=length, fr=fr, fr_length=fr_length, no_request=no_request, imag = pro)
+    
+    cursor.close()
+    db.close()
+    
+    return render_template("friends.html", show=showProfile, tel=tel, res=res, result_len=result_len, name=name,
+                           mem=mem, length=length, fr=fr, fr_length=fr_length, no_request=no_request, imag=pro)
 
 
 @app.route("/friends/<name>")
@@ -562,6 +684,13 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 import logging
 
 
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///yourdatabase.db'
+"""app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_POOL_SIZE'] = 5
+app.config['SQLALCHEMY_MAX_OVERFLOW'] = 10
+app.config['SQLALCHEMY_POOL_TIMEOUT'] = 30"""
+
 #db = SQLAlchemy(app)
 #Session(app)
 #socketio = SocketIO(app, cors_allowed_origins="*")
@@ -651,8 +780,8 @@ def handle_send_message(data):
         cursor.close()
     except Exception as e:
         app.logger.error(f'Error on send_message: {e}')
-        
 
+        
 @socketio.on('update_user_activity')
 def handle_update_user_activity(data):
     try:
@@ -683,18 +812,23 @@ def handle_fetch_user_login_data(data):
         cursor.close()
         db.close()
 
+
 @socketio.on('fetch_unread_count')
 def handle_fetch_unread_count(data):
     try:
         user = data['user']
         friend = data['friend']
         db = get_db()
-        cursor = db.cursor()
-        cursor.execute("SELECT COUNT(*) as count FROM message WHERE sender=? AND receiver=? AND status=?", (friend, user, 'unseen'))
+        cursor = db.cursor(dictionary=True)
+        cursor.execute("SELECT COUNT(*) as count FROM message WHERE sender=%s AND receiver=%s AND status=%s", (friend, user, 'unseen'))
         unread_count = cursor.fetchone()['count']
         emit('unread_count', {'count': unread_count})
     except Exception as e:
         app.logger.error(f'Error on fetch_unread_count: {e}')
+    finally:
+        cursor.close()
+        db.close()
+
 
 @socketio.on('mark_as_seen')
 def handle_mark_as_seen(data):
@@ -703,7 +837,7 @@ def handle_mark_as_seen(data):
         friend = data['friend']
         db = get_db()
         cursor = db.cursor()
-        cursor.execute("UPDATE message SET status=? WHERE sender=? AND receiver=?", ('seen', friend, user))
+        cursor.execute("UPDATE message SET status=%s WHERE sender=%s AND receiver=%s", ('seen', friend, user))
         db.commit()
     except Exception as e:
         app.logger.error(f'Error on mark_as_seen: {e}')

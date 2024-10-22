@@ -1,0 +1,75 @@
+{% extends "layout.html"%}
+
+{% block title %}Friends{% endblock %}
+
+{% block left %}
+    
+    <div class="text-center">
+        <h2><b>Friends</b></h2>
+    </div>
+    {% for i in range(result_len) %}
+        <table class="table">
+        <tr>   
+        {% if res[i]["userNumber"] == tel %}
+            <td><img src={{show(res[i]["friendNumber"])}} class="profile" alt="Profile picture" width="70" height="70"></td>
+            <td><a href={{url_for("messages", view=res[i]["friendNumber"])}}>{{res[i]["friendName"]}}</a></td>
+        {% elif res[i]["friendNumber"] == tel %}
+            <td><img src={{show(res[i]["userNumber"])}} class="profile" alt="Profile picture" width="75" height="75"></td>
+            <td><a href={{url_for("messages", view=res[i]["userNumber"])}}>{{res[i]["userName"]}}</a></td>
+        {% endif %}
+        </tr> 
+        </table>
+    {% endfor %}
+{% endblock %}
+
+
+{% block center %}
+<div class="text-center">
+    <h2><b>Friend request</b></h2>
+</div>
+    {% for i in range(fr_length) %}
+        {% if fr[i] == no_request %}
+        <div>{{fr[i]}}</div>
+        
+        
+        {% else %}
+        <img src={{show(fr[i]["userNumber"])}} class="profile prof" alt="Profile picture" width="80" height="80">
+          
+            <div class="fr">
+                <div>{{fr[i]["userName"]}}</div>
+                <a class="btn btn-primary" href={{url_for("remove", remove="remove",name=fr[i]["userNumber"])}}>Remove</a>
+                <a class="btn btn-primary" href={{url_for("confirm", lop="lop",confirm="confirm",name=fr[i]["userNumber"])}}>Confirm</a> 
+            </div>
+        {% endif %}
+    
+    {% endfor %}
+
+    <br>
+    <div class="text-center">
+        <h3><b>Suggested friends</b></h3>
+    </div>
+    
+    {% for i in range(length) %}
+    <img src={{show(mem[i]["telNumber"])}} class="profile prof" alt="Profile picture" width=80" height="80">
+        <div class="fr">
+            
+            <div>{{mem[i]["firstName"]}} {{mem[i]["surName"]}}</div>
+            <a class="btn btn-primary" href={{url_for("add", name=mem[i]["telNumber"])}}>add</a>
+        </div>
+    {% endfor %}
+    
+{% endblock %}
+
+
+{% block right %}
+    <div class="text-center">
+        <img src={{imag}} class="profile" alt="Profile picture" width="200" height="200">
+    </div>
+
+    <form action='/profile' method='post' enctype='multipart/form-data'>
+        <input type='file' name='filename' size='10' title="file"/>
+        <input type='submit' value='Upload' />
+    </form>
+    <h3>{{name}}</h3>
+    <a class="btn btn-primary logout" href={{url_for("logout")}}>Logout</a>
+{% endblock %}

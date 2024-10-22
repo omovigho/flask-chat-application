@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block center %}
+    <div class="text-center">
+        <img src={{imag}} class="profile" alt="Profile picture" width="200" height="200">
+    </div>
+
+    <form action='/profile' method='post' enctype='multipart/form-data'>
+        <input type='file' name='filename' size='10' title="file"/>
+        <input type='submit' value='Upload' />
+    </form>
+    <h3>{{name}}</h3>
+    <a class="btn btn-primary logout" href={{url_for("logout")}}>Logout</a>
+{% endblock%}

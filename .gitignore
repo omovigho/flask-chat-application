@@ -1,0 +1,20 @@
+# config file
+config.py
+
+# python cache
+__pycache__/
+
+# vscode
+.vscode/
+
+# database
+chat.db
+
+# images for user storage
+photos/
+
+# flask session
+flask_session/
+
+# instance folder
+instance/

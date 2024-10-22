@@ -1,0 +1,135 @@
+{% extends "layout.html"%}
+
+{% block title %}Messages{% endblock %}
+
+
+{% block left %}
+    <div class="message_left">
+        <div class="text-center">
+            <h2><b>Friends</b></h2>
+        </div>
+        {% for i in range(result_len) %}
+            <table class="table">
+            <tr>   
+            {% if res[i]["userNumber"] == tel %}
+                <td><img src={{show(res[i]["friendNumber"])}} class="profile" alt="Profile picture" width="70" height="70"></td>
+                <td><a href={{url_for("messages", view=res[i]["friendNumber"])}}>{{res[i]["friendName"]}}</a></td>
+            {% elif res[i]["friendNumber"] == tel %}
+                <td><img src={{show(res[i]["userNumber"])}} class="profile" alt="Profile picture" width="70" height="70"></td>
+                <td><a href={{url_for("messages", view=res[i]["userNumber"])}}>{{res[i]["userName"]}}</a></td>
+            {% endif %}
+            </tr> 
+            </table>
+        {% endfor %}
+    </div>
+    
+{% endblock %}
+
+
+{% block center %}
+    <div class="message_center">
+
+        <div class="message_chat">
+            {% if view != "" %}
+            {% for i in range(length) %}
+                {% if ((row[i]["sender"] == tel) and (row[i]["receiver"] == view)) %}
+                    <div class="friend_name">
+                        <!-- <p>{{row[i][""]}}</p> -->
+                    </div>
+
+                    <div class="lop">
+                    {% if (row[i]["date"] != 'Same') %}
+                        <div class="date">
+                        {% if row[i]["date"] == dat %}
+                            <span class="text-center cen">Today</span>
+                        {% else %}
+                            <span class="text-center cen">{{row[i]["date"]}}</span>
+                        {% endif %}
+                        </div>
+                        
+                    {% endif %}
+                    <div class='user'><span>{{row[i]["messages"]}}</span></div>
+                </div>
+                <script>
+                    online('{{row[i]["sender"]}}', '{{row[i]["receiver"]}}', 'friendName');
+                </script>
+                {% else %}
+                    
+                    {% if ((row[i]["sender"] == view) and (row[i]["receiver"] == tel)) %}
+                        <div class="friend_name">
+                
+                        </div>
+
+                        <div class="lop">
+                        {% if (row[i]["date"] != 'Same') %}
+
+                            <div class="date">
+                            {% if (row[i]["date"] == dat) %}
+                                <span class="text-center cen">Today</span>
+                            {% else %}
+                                <span class="text-center cen">{{row[i]["date"]}}</span>
+                            {% endif %}
+                            </div>
+
+                        {% endif %}
+                        <div class='friend'><span>{{row[i]["messages"]}}</span></div>
+                    </div>
+                    <script>
+                        online('{{row[i]["receiver"]}}', '{{row[i]["sender"]}}', 'friendName');
+                    </script>
+                    {% endif %}
+                {% endif %}
+
+            {% endfor %}
+        </div>
+        
+
+
+        <!-- <form action={{rout}} method="post">
+            <textarea name="text" cols="30" rows="2" placeholder="Type here"></textarea>
+            <input type='submit' value='Post Message' />    
+        </form> 
+        <div class="message_content">
+            <div class="chat">
+                <form action={{rout}} method="post">
+                    <textarea name="text" id=""  class="show" cols="45" rows="1" title="Enter your message" placeholder="Type your message here"></textarea>
+                    <i class="fas fa-file-import    "></i> 
+                    <button type="submit" title="Submit"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
+                </form>
+            </div>
+        </div> -->
+
+        <div class="message_content">
+            <div class="chat">
+                <!-- <form id="messageForm" action={{rout}} method="post"> -->
+                <form id="messageForm">
+                    <textarea name="text" id="messageInput" class="show" cols="45" rows="1" title="Enter your message" placeholder="Type your message here"></textarea>
+                    <button type="submit" id="sendButton" title="Submit"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
+                </form>
+            </div>
+        </div>
+
+    {% endif %}
+
+    </div>
+    
+
+{% endblock %}
+
+{% block right %}
+    <div class="message_right">
+        <div class="text-center">
+            <img src={{imag}} class="profile" alt="Profile picture" width="200" height="200">
+        </div>
+    
+        
+        <form action='/profile' method='post' enctype='multipart/form-data'>
+            <input type='file' name='filename' size='10' title="file" />
+            <input type='submit' value='Upload' />
+        </form>
+    
+        <h3>{{name}}</h3>
+        <a class="btn btn-primary logout" href={{url_for("logout")}}>Logout</a>
+    </div>
+    
+{% endblock %}
