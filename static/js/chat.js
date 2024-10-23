@@ -1,4 +1,4 @@
-var sendButton = document.getElementById('sendButton');
+/*var sendButton = document.getElementById('sendButton');
 var messageForm = document.getElementById('messageForm');
 
 sendButton.addEventListener('submit', ()=> {
@@ -27,10 +27,10 @@ function online(user, friend, friendName) {
             socket.emit('fetch_unread_count', { user: user, friend: friend });
 
             // Handle received messages
-            /*socket.on('receive_message', function(data) {
+            socket.on('receive_message', function(data) {
                 console.log('New message received:', data);
                 display_new_message(data.msg, data.user);
-            });*/
+            });
 
             socket.on('receive_message', function(data) {
                 if (data.user === friend) {
@@ -85,4 +85,18 @@ function online(user, friend, friendName) {
             }, 100000); // Adjust the interval as needed
         });
     });
-}
+}*/
+
+    var socket = io();
+    socket.on('new_message', function(data) {
+        var messageList = document.getElementsByClassName('friend');
+        console.log('New message from user ' + data.sender_id + ': ' + data.content);
+        messageList.textcontent = data.content;
+        alert('New message from user ' + data.sender_id + ': ' + data.content);
+        // Optionally, update the message list or notification badge
+    });
+    function sendMessage(user_id, receiver_id) {
+        var input = document.getElementById("message_input");
+        socket.emit('send_message', {'sender_id': user_id, 'receiver_id': receiver_id, 'content': input.value});
+        input.value = '';
+    }

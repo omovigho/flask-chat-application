@@ -695,18 +695,11 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 #import sqlite3
 import logging
 
-
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///yourdatabase.db'
-"""app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_POOL_SIZE'] = 5
-app.config['SQLALCHEMY_MAX_OVERFLOW'] = 10
-app.config['SQLALCHEMY_POOL_TIMEOUT'] = 30"""
-
 #db = SQLAlchemy(app)
 #Session(app)
-#socketio = SocketIO(app, cors_allowed_origins="*")
-socketio = SocketIO(app, ping_timeout=10, ping_interval=5, max_http_buffer_size=10**9)
+socketio = SocketIO(app, cors_allowed_origins="*")
+#socketio = SocketIO(app, ping_timeout=10, ping_interval=5, max_http_buffer_size=10**9)
+
 
 
 # Setup logging
@@ -794,7 +787,7 @@ def handle_send_message(data):
         app.logger.error(f'Error on send_message: {e}')
 
         
-@socketio.on('update_user_activity')
+'''@socketio.on('update_user_activity')
 def handle_update_user_activity(data):
     try:
         user = data['user']
@@ -853,7 +846,38 @@ def handle_mark_as_seen(data):
         db.commit()
     except Exception as e:
         app.logger.error(f'Error on mark_as_seen: {e}')
+        '''
+
+@socketio.on('send_message')
+def handle_send_message(data):
+    message = data['content']
+    tim = time.strftime("%I:%M:%S%p", time.localtime())
+    today = date.today()
+    dat = today.strftime("%B %d, %Y")
+    user = data['sender_id']
+    friend = data['receiver_id']
+    print(f"Message from {user} to {friend} is {message}")
+    print(user, friend, tim, dat, message, 'unseen')
+    db = get_db()
+    cursor = db.cursor(dictionary=True)  # Create a cursor
+    cursor.execute(
+        "INSERT INTO message VALUES (%s, %s, %s, %s, %s, %s, %s)",
+        (None, user, friend, tim, dat, message, 'unseen')
+    )
+    db.commit()
+
+    emit('new_message', {'content': message, 'sender_id': user}, room=friend)
+  
+
+    
+@socketio.on('join')
+def on_join(data):
+    user_id = data['user_id']
+    join_room(user_id)
+    print(f'User {user_id} has joined their room.')
+
+
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app)
 

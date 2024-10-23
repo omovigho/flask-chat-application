@@ -99,12 +99,19 @@
             </div>
         </div> -->
 
+        <script src="">
+            var socket = io();
+            socket.on('connect', function() {
+                socket.emit('join', {'user_id': '{{tel}}'});  // Join the room for the current user
+            });
+        </script>
+
         <div class="message_content">
             <div class="chat">
                 <!-- <form id="messageForm" action={{rout}} method="post"> -->
                 <form id="messageForm">
-                    <textarea name="text" id="messageInput" class="show" cols="45" rows="1" title="Enter your message" placeholder="Type your message here"></textarea>
-                    <button type="submit" id="sendButton" title="Submit"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
+                    <textarea name="text" id="message_input" class="show" cols="45" rows="1" title="Enter your message" placeholder="Type your message here"></textarea>
+                    <button id="sendButton" title="Submit" onclick="sendMessage('{{tel}}', '{{view}}')"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
                 </form>
             </div>
         </div>
