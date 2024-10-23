@@ -37,8 +37,8 @@
           
             <div class="fr">
                 <div>{{fr[i]["userName"]}}</div>
-                <a class="btn btn-primary" href={{url_for("remove", remove="remove",name=fr[i]["userNumber"])}}>Remove</a>
-                <a class="btn btn-primary" href={{url_for("confirm", lop="lop",confirm="confirm",name=fr[i]["userNumber"])}}>Confirm</a> 
+                <a class="btn btn-primary" href={{url_for("remove", remove="remove",number=fr[i]["userNumber"])}}>Remove</a>
+                <a class="btn btn-primary" href={{url_for("confirm", confirm="confirm",number=fr[i]["userNumber"])}}>Confirm</a> 
             </div>
         {% endif %}
     
