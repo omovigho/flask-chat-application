@@ -544,16 +544,16 @@ def add(name):
     return redirect("/friends")
 
 
-@app.route("/friends/<remove>/<name>")
+@app.route("/friends/<remove>/<number>")
 @login_required
-def remove(remove, name):
+def remove(remove, number):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
     tel = session["tel"]
 
     # Execute delete query
-    cursor.execute("DELETE FROM friendrequest WHERE userNumber=%s AND friendNumber=%s", (name, tel))
+    cursor.execute("DELETE FROM friendrequest WHERE userNumber=%s AND friendNumber=%s", (number, tel))
     db.commit()
 
     cursor.close()
@@ -562,9 +562,9 @@ def remove(remove, name):
     return redirect("/friends")
 
 
-@app.route("/friends/<lop>/<confirm>/<name>")
+@app.route("/friends/<confirm>/request/<number>")
 @login_required
-def confirm(lop, confirm, name):
+def confirm(confirm, number):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -576,7 +576,7 @@ def confirm(lop, confirm, name):
 
     for i in range(len(result)):
         # Check if they are already friends
-        cursor.execute("SELECT * FROM friends WHERE userNumber=%s AND friendNumber=%s", (tel, name))
+        cursor.execute("SELECT * FROM friends WHERE userNumber=%s AND friendNumber=%s", (number, tel))
         query = cursor.fetchall()
 
         if not query:
@@ -585,7 +585,7 @@ def confirm(lop, confirm, name):
                 (result[i]["userName"], result[i]["userNumber"], result[i]["friendName"], result[i]["friendNumber"]))
             
             # Delete from friendrequest table
-            cursor.execute("DELETE FROM friendrequest WHERE userNumber=%s AND friendNumber=%s", (result[i]["friendNumber"], tel))
+            cursor.execute("DELETE FROM friendrequest WHERE userNumber=%s AND friendNumber=%s", (result[i]["userNumber"], result[i]["friendNumber"]))
             db.commit()
 
     cursor.close()
