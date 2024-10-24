@@ -72,6 +72,7 @@ def after_request(response):
     return response
 
 
+# for showing user current profile image
 def cen():
     tel = session['tel']
     db = get_db()
@@ -847,7 +848,7 @@ def handle_mark_as_seen(data):
     except Exception as e:
         app.logger.error(f'Error on mark_as_seen: {e}')
         '''
-
+from flask_cors import CORS
 @socketio.on('send_message')
 def handle_send_message(data):
     message = data['content']
@@ -866,7 +867,8 @@ def handle_send_message(data):
     )
     db.commit()
 
-    emit('new_message', {'content': message, 'sender_id': user}, room=friend)
+    #emit('new_message', {'content': message, 'sender_id': user}, broadcast=True room=friend)
+    emit('new_message', {'content': message, 'sender_id': user}, broadcast=True )
   
 
     
@@ -879,5 +881,6 @@ def on_join(data):
 
 
 if __name__ == '__main__':
+    CORS(app)
     socketio.run(app)
 
