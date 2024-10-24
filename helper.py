@@ -14,6 +14,6 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get("tel") is None:
-            return redirect("/signup_signin")
+            return redirect("/signup-signin")
         return f(*args, **kwargs)
     return decorated_function
