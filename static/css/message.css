@@ -20,6 +20,13 @@
     height: 70px;
     bottom: 0px;
 }
+.messag {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
 .message_chat{
     position: relative;
     /*bottom: 20%;*/
@@ -60,4 +67,45 @@
     /*background-color:#0D6EFD; */
     position: absolute;
     bottom: 3px;
+}
+
+.user {
+    
+    width: 75%;
+    color      :black;
+    float: right;
+    border-radius:1em;
+    margin-right: 2%;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.user span{
+    background :#0D6EFD;
+    padding: 5px 10px;
+    float: right;
+    border-radius:1em;
+}
+.friend {
+    width: 75%;
+    
+    color      :black;
+    float: left;
+    margin-left: 2%;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+.friend span{
+    background :#E2EDF9;
+    padding: 5px 10px;
+    float: left;
+    border-radius:1em;
+}
+.chatBox {
+    width: 75%;
+    color      :rgb(214, 17, 17);
+    float: left;
+    margin-left: 2%;
+    margin-top: 15px;
+    margin-bottom: 5px;
 }

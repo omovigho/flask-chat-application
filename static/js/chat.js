@@ -93,6 +93,42 @@ function online(user, friend, friendName) {
         console.log('New message from user ' + data.sender_id + ': ' + data.content);
         messageList.textcontent = data.content;
         alert('New message from user ' + data.sender_id + ': ' + data.content);
+        
+        const chatBox = document.getElementById('chatBox');
+    
+    // Check if the chatBox exists
+    if (chatBox) {
+        console.log("ChatBox found, appending new message...");
+
+        // Create a new paragraph element to hold the new message
+        const newMessageDiv = document.createElement('div');
+        //newMessageDiv.style.backgroundColor = 'blue'; // Background color blue
+        
+        // Set the content of the new message (sender_id and message content)
+        newMessageDiv.textContent = data.content;
+        
+        // Apply inline styles: text color red and background color blue
+        newMessageDiv.style.color = 'red';           // Text color red
+        newMessageDiv.style.backgroundColor = 'black'; // Background color blue
+        newMessageDiv.style.padding = '10px';        // Add some padding
+        newMessageDiv.style.marginTop = '10px';   // Add space between messages
+        newMessageDiv.style.borderRadius = '5px';    // Optionally, round the corners
+
+        // Generate a unique id for this message div
+        const uniqueId = `message-${data.sender_id}-${Math.floor(Math.random() * 10000)}`;
+        //newMessageDi.id = uniqueId;
+
+        // Append the new message to the parent container
+        chatBox.appendChild(newMessageDiv);
+        //newMessageDi.appendChild(newMessageDiv);
+        
+        // Optional: Scroll to the bottom to show the latest message
+        chatBox.scrollTop = messageContainer.scrollHeight;
+        } 
+        else {
+            console.error("ChatBox element not found on this page.");
+        }
+        
         // Optionally, update the message list or notification badge
     });
     function sendMessage(user_id, receiver_id) {
@@ -100,3 +136,17 @@ function online(user, friend, friendName) {
         socket.emit('send_message', {'sender_id': user_id, 'receiver_id': receiver_id, 'content': input.value});
         input.value = '';
     }
+
+    /*var user_id = "{{ tel }}";  // Embed the user_id from Jinja2
+        var socket = io();
+        socket.on('connect', function() {
+            socket.emit('join', {'user_id': user_id});
+        });*/
+        
+        /*var messageContainer = document.getElementById("messages");
+        var newMessageDiv = document.createElement("div");
+        newMessageDiv.className = 'friend';
+        var newMessageSpan = document.createElement("span");
+        newMessageSpan.textContent = data.content;
+        newMessageDiv.appendChild(newMessageSpan);
+        messageContainer.appendChild(newMessageDiv);*/
