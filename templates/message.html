@@ -103,7 +103,25 @@
                 </form>
             </div>
         </div> -->
+        <script>
+            var ocket = io();
 
+            // Get user and friend IDs (these can be dynamically fetched or hardcoded)
+            const userId = "{{tel}}";  // Your user ID
+            const friendId = "{{view}}";  // Your friend's ID
+            //const friendId = "{{view}}";  // Your friend's ID
+            let roomJoined = false;  // Flag to track room join status
+            let rm = 3;
+            // Join the room with your friend
+            ocket.emit('join_room', { user_id: userId, friend_id: friendId });
+
+            // Listen for the confirmation that you've joined the room
+            ocket.on('joined_room', function(data) {
+                console.log('Joined rooms: ' + data.room_id);
+                roomJoined = true;
+                rm = data.room_id;
+            });
+        </script>
 
         <div class="message_content">
             <div class="chat">

@@ -691,7 +691,7 @@ def action():
 
 
 #from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, emit, send, join_room, leave_room
 #from flask_sqlalchemy import SQLAlchemy
 #import sqlite3
 import logging
@@ -866,17 +866,37 @@ def handle_send_message(data):
         (None, user, friend, tim, dat, message, 'unseen')
     )
     db.commit()
-
-    #emit('new_message', {'content': message, 'sender_id': user}, broadcast=True room=friend)
-    emit('new_message', {'content': message, 'sender_id': user}, broadcast=True )
+    room_id = f"room-{min(user, friend)}-{max(user, friend)}"
+    print('room_id is ', room_id)
+    #emit('new_message', {'content': message, 'sender_id': user}, room= room_id)
+    #emit('new_message', {'content': message, 'sender_id': user, 'room_id': room_id}, to=room_id )
+    send({'content': message, 'sender_id': user, 'room_id': room_id}, to=room_id)
   
-
+# Dictionary to store rooms for each pair of friends
+user_rooms = {}
     
-@socketio.on('join')
+'''@socketio.on('join')
 def on_join(data):
     user_id = data['user_id']
     join_room(user_id)
-    print(f'User {user_id} has joined their room.')
+    print(f'User {user_id} has joined their room.')'''
+    
+# Event for joining a room (chat between two friends)
+@socketio.on('join_room')
+def handle_join_room(data):
+    user_id = data['user_id']
+    friend_id = data['friend_id']
+    
+    # Create a unique room for the pair of users (both users should join this room)
+    room_id = f"room-{min(user_id, friend_id)}-{max(user_id, friend_id)}"
+    
+    # Store the room for the pair (optional, for tracking)
+    user_rooms[(user_id, friend_id)] = room_id
+    
+    # User joins the room
+    join_room(room_id)
+    #send('joined_room', {'room_id': room_id}, to=room_id)
+    emit('joined_room', {'room_id': room_id}, to=room_id)
 
 
 

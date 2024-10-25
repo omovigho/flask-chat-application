@@ -88,9 +88,64 @@ function online(user, friend, friendName) {
 }*/
 
     var socket = io();
+
+    socket.on("message", (data) => {
+        console.log('roomJoined: ' + rm + roomJoined + ' id ');
+        const cont = `
+        <div>
+            <span> ${data.content}</span>
+        </div>
+        `;
+        const chatBox = document.getElementById('chatBox');
+    
+    // Check if the chatBox exists
+    if (chatBox) {
+        console.log("ChatBox found, appending new message...");
+
+        // Create a new paragraph element to hold the new message
+        const newMessageDiv = document.createElement('div');
+        //newMessageDiv.style.backgroundColor = 'blue'; // Background color blue
+        
+        // Set the content of the new message (sender_id and message content)
+        newMessageDiv.innerHTML = cont;
+        
+        // Apply inline styles: text color red and background color blue
+        newMessageDiv.style.color = 'red';           // Text color red
+        newMessageDiv.style.backgroundColor = 'black'; // Background color blue
+        newMessageDiv.style.padding = '10px';        // Add some padding
+        newMessageDiv.style.marginTop = '10px';   // Add space between messages
+        newMessageDiv.style.borderRadius = '5px';    // Optionally, round the corners
+
+        // Generate a unique id for this message div
+        const uniqueId = `message-${data.sender_id}-${Math.floor(Math.random() * 10000)}`;
+        //newMessageDi.id = uniqueId;
+
+        // Append the new message to the parent container
+        chatBox.appendChild(newMessageDiv);
+        //newMessageDi.appendChild(newMessageDiv);
+        
+        // Optional: Scroll to the bottom to show the latest message
+        chatBox.scrollTop = messageContainer.scrollHeight;
+        } 
+        else {
+            console.error("ChatBox element not found on this page.");
+        }
+    });
+
+
+    
     socket.on('new_message', function(data) {
         var messageList = document.getElementsByClassName('friend');
+        console.log('Sending message...');
+        console.log('roomJoined: ' + rm + roomJoined + ' id ');
         console.log('New message from user ' + data.sender_id + ': ' + data.content);
+        if (data.room_id == rm) {
+            console.log('the program sucess');
+            
+        } else {
+            console.log('the program failed');
+            
+        }
         messageList.textcontent = data.content;
         alert('New message from user ' + data.sender_id + ': ' + data.content);
         
@@ -132,9 +187,16 @@ function online(user, friend, friendName) {
         // Optionally, update the message list or notification badge
     });
     function sendMessage(user_id, receiver_id) {
-        var input = document.getElementById("message_input");
-        socket.emit('send_message', {'sender_id': user_id, 'receiver_id': receiver_id, 'content': input.value});
-        input.value = '';
+        console.log('Sending message...');
+        console.log('roomJoined: ' + roomJoined);
+        if (roomJoined){
+            var input = document.getElementById("message_input");
+            socket.emit('send_message', {'sender_id': user_id, 'receiver_id': receiver_id, 'content': input.value});
+            input.value = '';
+        }
+        else {
+            console.warn('Cannot send message; not yet joined to room.');
+        }
     }
 
     /*var user_id = "{{ tel }}";  // Embed the user_id from Jinja2
