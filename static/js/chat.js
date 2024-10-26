@@ -87,7 +87,24 @@ function online(user, friend, friendName) {
     });
 }*/
 
-    var socket = io();
+
+
+
+    const socket = io();
+
+    let roomJoined;
+    const createRoom = (user, friend)=>{
+        roomJoined = false;  // Flag to track room join status
+        // Join the room with your friend
+        socket.emit('join_room', { user_id: user, friend_id: friend });
+    }
+
+    // Listen for the confirmation that you've joined the room
+    socket.on('joined_room', (data)=> {
+        console.log('Joined rooms: ' + data.room_id);
+        roomJoined = true;
+    });
+
 
     socket.on("message", (data) => {
         console.log('roomJoined: ' + rm + roomJoined + ' id ');

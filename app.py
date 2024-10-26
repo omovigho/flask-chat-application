@@ -706,86 +706,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # Setup logging
 logging.basicConfig(level=logging.DEBUG)
 
-"""def get_db():
-    conn = sqlite3.connect('chat.db')
-    conn.row_factory = sqlite3.Row
-    return conn"""
 
-@socketio.on('connect')
-def handle_connect():
-    try:
-        print('Client connected')
-    except Exception as e:
-        app.logger.error(f'Error on connect: {e}')
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    try:
-        print('Client disconnected')
-    except Exception as e:
-        app.logger.error(f'Error on disconnect: {e}')
-
-@socketio.on('join')
-def handle_join(data):
-    try:
-        user = data['user']
-        friend = data['friend']
-        room = f"{user}_{friend}"
-        join_room(room)
-        emit('status', {'msg': f'{user} has entered the room.'}, room=room)
-    except Exception as e:
-        app.logger.error(f'Error on join: {e}')
-
-@socketio.on('leave')
-def handle_leave(data):
-    try:
-        user = data['user']
-        friend = data['friend']
-        room = f"{user}_{friend}"
-        leave_room(room)
-        emit('status', {'msg': f'{user} has left the room.'}, room=room)
-    except Exception as e:
-        app.logger.error(f'Error on leave: {e}')
-
-@socketio.on('send_message')
-def handle_send_message(data):
-    try:
-        user = data['user']
-        friend = data['friend']
-        message = data['message']
-        tim = time.strftime("%I:%M:%S%p", time.localtime())
-        today = date.today()
-        dat = today.strftime("%B %d, %Y")
-        print(f"Message from {user} to {friend} is {message}")
-        # Broadcast the message to the room
-        room = f"{user}_{friend}"
-        emit('receive_message', {'msg': message, 'user': user}, room=room, broadcast=True)
-
-        # Insert the message into the database
-        db = get_db()
-        cursor = db.cursor()
-        # Check if there is already a message between the same users on the same date
-        query = cursor.execute(
-            "SELECT * FROM message WHERE (sender=? AND receiver=? AND date=?) OR (sender=? AND receiver=? AND date=?)",
-            (user, friend, dat, friend, user, dat)
-        ).fetchone()
-
-        if query:
-            """cursor.execute(
-                "INSERT INTO message (id, sender, receiver, time, date, content, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                (None, user, friend, tim, 'Same', message, 'unseen')
-            )"""
-            cursor.execute("INSERT INTO message VALUES(?,?,?,?,?,?,?)",None, user, friend, tim, 'Same', message, 'unseen')
-        else:
-            """cursor.execute(
-                "INSERT INTO message (id, sender, receiver, time, date, content, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                (None, user, friend, tim, dat, message, 'unseen')
-            )"""
-            cursor.execute("INSERT INTO message VALUES(?,?,?,?,?,?,?)",None, user, friend, tim, dat, message, 'unseen')
-        db.commit()
-        cursor.close()
-    except Exception as e:
-        app.logger.error(f'Error on send_message: {e}')
 
         
 '''@socketio.on('update_user_activity')
@@ -848,7 +769,24 @@ def handle_mark_as_seen(data):
     except Exception as e:
         app.logger.error(f'Error on mark_as_seen: {e}')
         '''
+        
 from flask_cors import CORS
+
+@socketio.on('connect')
+def cnnect():
+    try:
+        print('Client connected')
+    except Exception as e:
+        app.logger.error(f'Error on connect: {e}')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    try:
+        print('Client disconnected fr')
+    except Exception as e:
+        app.logger.error(f'Error on disconnect: {e}')
+        
+        
 @socketio.on('send_message')
 def handle_send_message(data):
     message = data['content']
@@ -897,6 +835,18 @@ def handle_join_room(data):
     join_room(room_id)
     #send('joined_room', {'room_id': room_id}, to=room_id)
     emit('joined_room', {'room_id': room_id}, to=room_id)
+
+
+@socketio.on('leave')
+def handle_leave(data):
+    try:
+        user = data['user']
+        friend = data['friend']
+        room = f"{user}_{friend}"
+        leave_room(room)
+        emit('status', {'msg': f'{user} has left the room.'}, room=room)
+    except Exception as e:
+        app.logger.error(f'Error on leave: {e}')
 
 
 
