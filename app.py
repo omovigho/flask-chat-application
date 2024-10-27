@@ -772,8 +772,10 @@ def handle_mark_as_seen(data):
         
 from flask_cors import CORS
 
+room_id = None
+
 @socketio.on('connect')
-def cnnect():
+def connect():
     try:
         print('Client connected')
     except Exception as e:
@@ -804,11 +806,11 @@ def handle_send_message(data):
         (None, user, friend, tim, dat, message, 'unseen')
     )
     db.commit()
-    room_id = f"room-{min(user, friend)}-{max(user, friend)}"
+    #room_id = f"room-{min(user, friend)}-{max(user, friend)}"
     print('room_id is ', room_id)
     #emit('new_message', {'content': message, 'sender_id': user}, room= room_id)
     #emit('new_message', {'content': message, 'sender_id': user, 'room_id': room_id}, to=room_id )
-    send({'content': message, 'sender_id': user, 'room_id': room_id}, to=room_id)
+    send('new_message',{'content': message, 'sender_id': user, 'room_id': room_id}, to=room_id)
   
 # Dictionary to store rooms for each pair of friends
 user_rooms = {}
@@ -830,7 +832,7 @@ def handle_join_room(data):
     
     # Store the room for the pair (optional, for tracking)
     user_rooms[(user_id, friend_id)] = room_id
-    
+    print('room id is ', room_id, 'user_id is ', user_id, 'friend_id is ', friend_id)
     # User joins the room
     join_room(room_id)
     #send('joined_room', {'room_id': room_id}, to=room_id)

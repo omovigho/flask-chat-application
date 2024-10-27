@@ -24,6 +24,7 @@
 
 
 {% block center %}
+
     {% for i in range(result_len) %}
         {% if result[i]["userNumber"] == tel %}
             <div class="con">
@@ -34,7 +35,7 @@
                 </div>
 
                 <div class="ri">
-                    <div id='change{{replace(result[i]["friendName"])}}'  class='name' onclick="createRoom('{{tel}}','{{result[i][`friendNumber`]}}')"><a href={{url_for("messages", view=result[i]["friendNumber"])}}>{{result[i]["friendName"]}}</a></div>
+                    <div id='change{{replace(result[i]["friendName"])}}'  class='name' onclick="createRoom('{{tel}}','{{result[i]['friendNumber']}}')"><a href={{url_for("messages", view=result[i]["friendNumber"])}}>{{result[i]["friendName"]}}</a></div>
                     <div id='{{replace(result[i]["friendName"])}}' ></div>
                 </div>
                 
@@ -57,7 +58,7 @@
                 </div>
 
                 <div class="ri">
-                    <div id='change{{replace(result[i]["userName"])}}'class='name' onclick="createRoom('{{result[i][`userNumber`]}}', '{{tel}}')"><a href={{url_for("messages", view=result[i]["userNumber"])}}>{{result[i]["userName"]}}</a></div>
+                    <div id='change{{replace(result[i]["userName"])}}' class='name' onclick="createRoom('{{result[i]['userNumber']}}', '{{tel}}')"><a href={{url_for("messages", view=result[i]["userNumber"])}}>{{result[i]["userName"]}}</a></div>
                     <div id='{{replace(result[i]["userName"])}}'></div>
                 </div>
 

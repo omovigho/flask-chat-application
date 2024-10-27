@@ -99,6 +99,15 @@ function online(user, friend, friendName) {
         socket.emit('join_room', { user_id: user, friend_id: friend });
     }
 
+    const chatBox = document.getElementById('chatBox');
+    const createMessage = (message) => {
+        const content = `
+        <div>
+            <span> ${message}</span>
+        </div>
+        `;
+        chatBox.innerHTML += content;
+    }
     // Listen for the confirmation that you've joined the room
     socket.on('joined_room', (data)=> {
         console.log('Joined rooms: ' + data.room_id);
@@ -108,38 +117,14 @@ function online(user, friend, friendName) {
 
     socket.on("message", (data) => {
         console.log('roomJoined: ' + rm + roomJoined + ' id ');
-        const cont = `
-        <div>
-            <span> ${data.content}</span>
-        </div>
-        `;
-        const chatBox = document.getElementById('chatBox');
+        
+        
     
     // Check if the chatBox exists
     if (chatBox) {
         console.log("ChatBox found, appending new message...");
 
-        // Create a new paragraph element to hold the new message
-        const newMessageDiv = document.createElement('div');
-        //newMessageDiv.style.backgroundColor = 'blue'; // Background color blue
-        
-        // Set the content of the new message (sender_id and message content)
-        newMessageDiv.innerHTML = cont;
-        
-        // Apply inline styles: text color red and background color blue
-        newMessageDiv.style.color = 'red';           // Text color red
-        newMessageDiv.style.backgroundColor = 'black'; // Background color blue
-        newMessageDiv.style.padding = '10px';        // Add some padding
-        newMessageDiv.style.marginTop = '10px';   // Add space between messages
-        newMessageDiv.style.borderRadius = '5px';    // Optionally, round the corners
-
-        // Generate a unique id for this message div
-        const uniqueId = `message-${data.sender_id}-${Math.floor(Math.random() * 10000)}`;
-        //newMessageDi.id = uniqueId;
-
-        // Append the new message to the parent container
-        chatBox.appendChild(newMessageDiv);
-        //newMessageDi.appendChild(newMessageDiv);
+        createMessage(data.content);
         
         // Optional: Scroll to the bottom to show the latest message
         chatBox.scrollTop = messageContainer.scrollHeight;
@@ -206,14 +191,15 @@ function online(user, friend, friendName) {
     function sendMessage(user_id, receiver_id) {
         console.log('Sending message...');
         console.log('roomJoined: ' + roomJoined);
-        if (roomJoined){
+        alert('poopl');
+        //if (roomJoined){
             var input = document.getElementById("message_input");
             socket.emit('send_message', {'sender_id': user_id, 'receiver_id': receiver_id, 'content': input.value});
             input.value = '';
-        }
+        /*}
         else {
             console.warn('Cannot send message; not yet joined to room.');
-        }
+        }*/
     }
 
     /*var user_id = "{{ tel }}";  // Embed the user_id from Jinja2
