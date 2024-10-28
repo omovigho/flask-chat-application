@@ -92,12 +92,32 @@ function online(user, friend, friendName) {
 
     const socket = io();
 
+    //var private_socket = io('http://127.0.0.1:5000/private')
+
     let roomJoined;
+    let room;
+
     const createRoom = (user, friend)=>{
-        roomJoined = false;  // Flag to track room join status
-        // Join the room with your friend
-        socket.emit('join_room', { user_id: user, friend_id: friend });
+        let newRoom = `room-${Math.min(user, friend)}-${Math.max(user, friend)}`;
+        if(newRoom == room){
+            msg = `You are aleart in room ${room}`
+        }
+        else{
+            leaveRoom(room)
+            joinRoom(newRoom)
+            room = newRoom
+        }
     }
+
+
+    function leaveRoom(room) {
+        socket.emit('leave', {'room':room});
+    }
+
+    function joinRoom(room) {
+        socket.emit('join', {'room':room});
+    }
+
 
     const chatBox = document.getElementById('chatBox');
     const createMessage = (message) => {
@@ -118,7 +138,7 @@ function online(user, friend, friendName) {
     socket.on("message", (data) => {
         console.log('roomJoined: ' + rm + roomJoined + ' id ');
         
-        
+        alert('New message from user ' + data.sender_id + ': ' + data.content);
     
     // Check if the chatBox exists
     if (chatBox) {
@@ -191,10 +211,9 @@ function online(user, friend, friendName) {
     function sendMessage(user_id, receiver_id) {
         console.log('Sending message...');
         console.log('roomJoined: ' + roomJoined);
-        alert('poopl');
         //if (roomJoined){
-            var input = document.getElementById("message_input");
-            socket.emit('send_message', {'sender_id': user_id, 'receiver_id': receiver_id, 'content': input.value});
+        var input = document.getElementById("message_input");
+        socket.emit('send_message', {'sender_id': user_id, 'receiver_id': receiver_id, 'content': input.value, 'room': room});
             input.value = '';
         /*}
         else {
