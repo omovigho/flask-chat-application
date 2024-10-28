@@ -774,6 +774,9 @@ from flask_cors import CORS
 
 room_id = None
 
+# Dictionary to store session IDs
+clients = {}
+
 @socketio.on('connect')
 def connect():
     try:
@@ -785,6 +788,7 @@ def connect():
 def handle_disconnect():
     try:
         print('Client disconnected fr')
+        print('the length of clients is ', len(clients))
     except Exception as e:
         app.logger.error(f'Error on disconnect: {e}')
         
@@ -800,41 +804,44 @@ def handle_send_message(data):
     print(f"Message from {user} to {friend} is {message}")
     print(user, friend, tim, dat, message, 'unseen')
     db = get_db()
-    cursor = db.cursor(dictionary=True)  # Create a cursor
+    '''cursor = db.cursor(dictionary=True)  # Create a cursor
     cursor.execute(
         "INSERT INTO message VALUES (%s, %s, %s, %s, %s, %s, %s)",
         (None, user, friend, tim, dat, message, 'unseen')
     )
-    db.commit()
+    db.commit()'''
     #room_id = f"room-{min(user, friend)}-{max(user, friend)}"
     print('room_id is ', room_id)
     #emit('new_message', {'content': message, 'sender_id': user}, room= room_id)
     #emit('new_message', {'content': message, 'sender_id': user, 'room_id': room_id}, to=room_id )
-    send('new_message',{'content': message, 'sender_id': user, 'room_id': room_id}, to=room_id)
+    emit('new_message',{'content': message, 'sender_id': user, 'room_id': room_id}, room=data['room'])
   
 # Dictionary to store rooms for each pair of friends
 user_rooms = {}
     
-'''@socketio.on('join')
+@socketio.on('join')
 def on_join(data):
-    user_id = data['user_id']
+    user_id = data['room']
     join_room(user_id)
-    print(f'User {user_id} has joined their room.')'''
+    print(f'User {user_id} has joined their room.')
     
 # Event for joining a room (chat between two friends)
 @socketio.on('join_room')
 def handle_join_room(data):
+    
     user_id = data['user_id']
     friend_id = data['friend_id']
-    
+    print(user_id, 'has joined the room and connected')
+    #print('session id for user', request.sid)
+    clients[user_id] = request.sid
     # Create a unique room for the pair of users (both users should join this room)
     room_id = f"room-{min(user_id, friend_id)}-{max(user_id, friend_id)}"
     
     # Store the room for the pair (optional, for tracking)
     user_rooms[(user_id, friend_id)] = room_id
-    print('room id is ', room_id, 'user_id is ', user_id, 'friend_id is ', friend_id)
+    print('room client id is ', clients[user_id], 'user_id is ', user_id, 'friend_id is ', friend_id)
     # User joins the room
-    join_room(room_id)
+    #join_room(room_id)
     #send('joined_room', {'room_id': room_id}, to=room_id)
     emit('joined_room', {'room_id': room_id}, to=room_id)
 
@@ -842,17 +849,15 @@ def handle_join_room(data):
 @socketio.on('leave')
 def handle_leave(data):
     try:
-        user = data['user']
-        friend = data['friend']
-        room = f"{user}_{friend}"
-        leave_room(room)
-        emit('status', {'msg': f'{user} has left the room.'}, room=room)
+        leave_room(data['room'])
+        print(data['room'], ' have left room')
+        #emit('status', {'msg': f'{user} has left the room.'}, room=room)
     except Exception as e:
         app.logger.error(f'Error on leave: {e}')
 
 
 
 if __name__ == '__main__':
-    CORS(app)
+    #CORS(app)
     socketio.run(app)
 
