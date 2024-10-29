@@ -92,7 +92,13 @@ function online(user, friend, friendName) {
 
     const socket = io();
 
-    //var private_socket = io('http://127.0.0.1:5000/private')
+    socket.on('connect', (data) => {
+        console.log('Connected to server');
+        var room_id = data['room']; 
+        if (room_id) {
+            socket.emit('join', { room: room_id });
+        }
+    });
 
     let roomJoined;
     let room;
@@ -100,12 +106,21 @@ function online(user, friend, friendName) {
     const createRoom = (user, friend)=>{
         let newRoom = `room-${Math.min(user, friend)}-${Math.max(user, friend)}`;
         if(newRoom == room){
-            msg = `You are aleart in room ${room}`
+            msg = `You are aleart in room ${room}`;
+            alert(msg);
         }
         else{
-            leaveRoom(room)
-            joinRoom(newRoom)
-            room = newRoom
+            if (room == undefined){
+                joinRoom(newRoom);
+                room = newRoom;
+                //alert('You are now in room ' + room);
+            } else {
+                alert('You are now in else room ' + room);
+                leaveRoom(room);
+                joinRoom(newRoom);
+                room = newRoom;
+            }
+           
         }
     }
 
@@ -156,18 +171,10 @@ function online(user, friend, friendName) {
 
 
     
-    socket.on('new_message', function(data) {
+    socket.on('new_message', (data) => {
         var messageList = document.getElementsByClassName('friend');
-        console.log('Sending message...');
-        console.log('roomJoined: ' + rm + roomJoined + ' id ');
         console.log('New message from user ' + data.sender_id + ': ' + data.content);
-        if (data.room_id == rm) {
-            console.log('the program sucess');
-            
-        } else {
-            console.log('the program failed');
-            
-        }
+        
         messageList.textcontent = data.content;
         alert('New message from user ' + data.sender_id + ': ' + data.content);
         
@@ -211,10 +218,12 @@ function online(user, friend, friendName) {
     function sendMessage(user_id, receiver_id) {
         console.log('Sending message...');
         console.log('roomJoined: ' + roomJoined);
+        //alert('Sending message...' + room + typeof room);
+        console.log('Data type of room:', typeof room);
         //if (roomJoined){
         var input = document.getElementById("message_input");
-        socket.emit('send_message', {'sender_id': user_id, 'receiver_id': receiver_id, 'content': input.value, 'room': room});
-            input.value = '';
+        socket.emit('send_message', {'sender_id': user_id, 'receiver_id': receiver_id, 'content': input.value});
+            //input.value = '';
         /*}
         else {
             console.warn('Cannot send message; not yet joined to room.');
