@@ -58,7 +58,7 @@
                 </div>
 
                 <div class="ri">
-                    <div id='change{{replace(result[i]["userName"])}}' class='name' onclick="createRoom('{{result[i]['friendNumber']}}', '{{tel}}')"><a href={{url_for("messages", view=result[i]["userNumber"])}}>{{result[i]["userName"]}}</a></div>
+                    <div id='change{{replace(result[i]["userName"])}}' class='name' onclick="createRoom('{{result[i]['userNumber']}}', '{{tel}}')"><a href={{url_for("messages", view=result[i]["userNumber"])}}>{{result[i]["userName"]}}</a></div>
                     <div id='{{replace(result[i]["userName"])}}'></div>
                 </div>
 
