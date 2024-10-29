@@ -29,7 +29,7 @@ app.secret_key = ""
 #Session(app)
 
 # database settings
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, emit, join_room, leave_room, send
 import mysql.connector
 from mysql.connector import Error
 from config import Config
@@ -770,17 +770,25 @@ def handle_mark_as_seen(data):
         app.logger.error(f'Error on mark_as_seen: {e}')
         '''
         
-from flask_cors import CORS
+#from flask_cors import CORS
 
-room_id = None
+user_rooms = {}
 
-# Dictionary to store session IDs
-clients = {}
+@socketio.on('join')
+def on_join(data):
+    user_id = data['room']
+    user_rooms['room'] = user_id
+    join_room(user_id)
+    print(f'User {user_id} has joined their room.')
+    
 
 @socketio.on('connect')
 def connect():
     try:
         print('Client connected')
+        if user_rooms['room'] != '':
+            print('Client reconnected to room')
+            emit('connect',{'room': user_rooms['room']})
     except Exception as e:
         app.logger.error(f'Error on connect: {e}')
 
@@ -788,7 +796,9 @@ def connect():
 def handle_disconnect():
     try:
         print('Client disconnected fr')
-        print('the length of clients is ', len(clients))
+        if user_rooms['room'] != '':
+            print('Client reconnected to room')
+            emit('connect',{'room': user_rooms['room']})
     except Exception as e:
         app.logger.error(f'Error on disconnect: {e}')
         
@@ -803,27 +813,22 @@ def handle_send_message(data):
     friend = data['receiver_id']
     print(f"Message from {user} to {friend} is {message}")
     print(user, friend, tim, dat, message, 'unseen')
-    db = get_db()
+    print('room_id is ', user_rooms['room'])
+    #db = get_db()
     '''cursor = db.cursor(dictionary=True)  # Create a cursor
     cursor.execute(
         "INSERT INTO message VALUES (%s, %s, %s, %s, %s, %s, %s)",
         (None, user, friend, tim, dat, message, 'unseen')
     )
     db.commit()'''
-    #room_id = f"room-{min(user, friend)}-{max(user, friend)}"
-    print('room_id is ', room_id)
     #emit('new_message', {'content': message, 'sender_id': user}, room= room_id)
     #emit('new_message', {'content': message, 'sender_id': user, 'room_id': room_id}, to=room_id )
-    emit('new_message',{'content': message, 'sender_id': user, 'room_id': room_id}, room=data['room'])
+    emit('new_message',{'content': message, 'sender_id': user, }, room=user_rooms['room'])
   
 # Dictionary to store rooms for each pair of friends
 user_rooms = {}
     
-@socketio.on('join')
-def on_join(data):
-    user_id = data['room']
-    join_room(user_id)
-    print(f'User {user_id} has joined their room.')
+
     
 # Event for joining a room (chat between two friends)
 @socketio.on('join_room')
@@ -833,9 +838,9 @@ def handle_join_room(data):
     friend_id = data['friend_id']
     print(user_id, 'has joined the room and connected')
     #print('session id for user', request.sid)
-    clients[user_id] = request.sid
+    #clients[user_id] = request.sid
     # Create a unique room for the pair of users (both users should join this room)
-    room_id = f"room-{min(user_id, friend_id)}-{max(user_id, friend_id)}"
+    #room_id = f"room-{min(user_id, friend_id)}-{max(user_id, friend_id)}"
     
     # Store the room for the pair (optional, for tracking)
     user_rooms[(user_id, friend_id)] = room_id
