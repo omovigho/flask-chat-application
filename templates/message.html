@@ -88,21 +88,6 @@
             <div id="chatBox"></div>
         </div>
         
-
-
-        <!-- <form action={{rout}} method="post">
-            <textarea name="text" cols="30" rows="2" placeholder="Type here"></textarea>
-            <input type='submit' value='Post Message' />    
-        </form> 
-        <div class="message_content">
-            <div class="chat">
-                <form action={{rout}} method="post">
-                    <textarea name="text" id=""  class="show" cols="45" rows="1" title="Enter your message" placeholder="Type your message here"></textarea>
-                    <i class="fas fa-file-import    "></i> 
-                    <button type="submit" title="Submit"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
-                </form>
-            </div>
-        </div> -->
         <script>
             
         </script>
@@ -110,10 +95,10 @@
         <div class="message_content">
             <div class="chat">
                 <!-- <form id="messageForm" action={{rout}} method="post"> -->
-                <form id="messageForm">
+                
                     <textarea name="text" id="message_input" class="show" cols="45" rows="1" title="Enter your message" placeholder="Type your message here"></textarea>
-                    <button id="sendButton" title="Submit" onclick="sendMessage('{{tel}}', '{{view}}')"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
-                </form>
+                    <button type='button' id="sendButton" title="Submit" onclick="sendMessage('{{tel}}', '{{view}}')"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
+                
             </div>
         </div>
 
