@@ -100,8 +100,7 @@ function online(user, friend, friendName) {
         }
     });
 
-    let roomJoined;
-    let room;
+    let room; //for storing room id
 
     const createRoom = (user, friend)=>{
         let newRoom = `room-${Math.min(user, friend)}-${Math.max(user, friend)}`;
@@ -213,7 +212,6 @@ function online(user, friend, friendName) {
             console.error("ChatBox element not found on this page.");
         }
         
-        // Optionally, update the message list or notification badge
     });
     function sendMessage(user_id, receiver_id) {
         console.log('Sending message...');
@@ -223,23 +221,5 @@ function online(user, friend, friendName) {
         //if (roomJoined){
         var input = document.getElementById("message_input");
         socket.emit('send_message', {'sender_id': user_id, 'receiver_id': receiver_id, 'content': input.value});
-            //input.value = '';
-        /*}
-        else {
-            console.warn('Cannot send message; not yet joined to room.');
-        }*/
+           
     }
-
-    /*var user_id = "{{ tel }}";  // Embed the user_id from Jinja2
-        var socket = io();
-        socket.on('connect', function() {
-            socket.emit('join', {'user_id': user_id});
-        });*/
-        
-        /*var messageContainer = document.getElementById("messages");
-        var newMessageDiv = document.createElement("div");
-        newMessageDiv.className = 'friend';
-        var newMessageSpan = document.createElement("span");
-        newMessageSpan.textContent = data.content;
-        newMessageDiv.appendChild(newMessageSpan);
-        messageContainer.appendChild(newMessageDiv);*/
