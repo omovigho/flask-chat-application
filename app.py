@@ -770,8 +770,7 @@ def handle_mark_as_seen(data):
         app.logger.error(f'Error on mark_as_seen: {e}')
         '''
         
-#from flask_cors import CORS
-
+# Dictionary to store rooms for each pair of friends
 user_rooms = {}
 
 @socketio.on('join')
@@ -821,34 +820,7 @@ def handle_send_message(data):
         (None, user, friend, tim, dat, message, 'unseen')
     )
     db.commit()'''
-    #emit('new_message', {'content': message, 'sender_id': user}, room= room_id)
-    #emit('new_message', {'content': message, 'sender_id': user, 'room_id': room_id}, to=room_id )
     emit('new_message',{'content': message, 'sender_id': user, }, room=user_rooms['room'])
-  
-# Dictionary to store rooms for each pair of friends
-user_rooms = {}
-    
-
-    
-# Event for joining a room (chat between two friends)
-@socketio.on('join_room')
-def handle_join_room(data):
-    
-    user_id = data['user_id']
-    friend_id = data['friend_id']
-    print(user_id, 'has joined the room and connected')
-    #print('session id for user', request.sid)
-    #clients[user_id] = request.sid
-    # Create a unique room for the pair of users (both users should join this room)
-    #room_id = f"room-{min(user_id, friend_id)}-{max(user_id, friend_id)}"
-    
-    # Store the room for the pair (optional, for tracking)
-    user_rooms[(user_id, friend_id)] = room_id
-    print('room client id is ', clients[user_id], 'user_id is ', user_id, 'friend_id is ', friend_id)
-    # User joins the room
-    #join_room(room_id)
-    #send('joined_room', {'room_id': room_id}, to=room_id)
-    emit('joined_room', {'room_id': room_id}, to=room_id)
 
 
 @socketio.on('leave')
@@ -861,8 +833,6 @@ def handle_leave(data):
         app.logger.error(f'Error on leave: {e}')
 
 
-
 if __name__ == '__main__':
-    #CORS(app)
     socketio.run(app)
 
