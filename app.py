@@ -813,13 +813,13 @@ def handle_send_message(data):
     print(f"Message from {user} to {friend} is {message}")
     print(user, friend, tim, dat, message, 'unseen')
     print('room_id is ', user_rooms['room'])
-    #db = get_db()
-    '''cursor = db.cursor(dictionary=True)  # Create a cursor
+    db = get_db()
+    cursor = db.cursor(dictionary=True)  # Create a cursor
     cursor.execute(
         "INSERT INTO message VALUES (%s, %s, %s, %s, %s, %s, %s)",
         (None, user, friend, tim, dat, message, 'unseen')
     )
-    db.commit()'''
+    db.commit()
     emit('new_message',{'content': message, 'sender_id': user, }, room=user_rooms['room'])
 
 
